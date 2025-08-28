@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Horizontal scroll style */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb transparent;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 10px;
+}
+
+  
