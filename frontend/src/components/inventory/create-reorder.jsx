@@ -45,7 +45,7 @@ function ReorderRequestForm({ onSubmit }) {
       }
 
       toast.success("Reorder request created successfully", {
-        position: "top-center", // <-- show at top center
+        position: "top-center", 
       });
       setForm({
         title: "",
@@ -56,7 +56,7 @@ function ReorderRequestForm({ onSubmit }) {
       });
     } catch (err) {
         toast.error(err?.message || "Failed to create reorder request", {
-            position: "top-center", // <-- show at top center
+            position: "top-center", 
         });
     } finally {
       setIsSubmitting(false);
@@ -70,10 +70,10 @@ function ReorderRequestForm({ onSubmit }) {
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
         
         {/* Header */}
-        <div className="bg-[#A2C3E8] p-6 rounded-t-xl text-center flex flex-col items-center">
-          <FontAwesomeIcon icon={faBoxes} size="2x" className="mb-2 text-black" />
-          <h2 className="text-2xl text-black">Create Reorder Request</h2>
-          <p className="text-sm opacity-90 text-black">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-t-xl text-center flex flex-col items-center">
+          <FontAwesomeIcon icon={faBoxes} size="2x" className="mb-2 text-white" />
+          <h2 className="text-2xl text-white">Create Reorder Request</h2>
+          <p className="text-sm opacity-90 text-white">
             Fill in the details to request new stock from suppliers.
           </p>
         </div>
@@ -122,9 +122,9 @@ function ReorderRequestForm({ onSubmit }) {
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className={`w-full pl-4 pr-4 py-3 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-200 appearance-none ${errors.category ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full pl-4 pr-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-200 appearance-none ${errors.category ? "border-red-500" : "border-gray-300"} ${form.category === "" ? "text-gray-400" : "text-black"}`}
               >
-                <option value="">Select Category</option>
+                <option value="" className="text-gray-700">Select Category</option>
                 <option value="Laptops">Laptops</option>
                 <option value="Mobile Phones">Mobile Phones</option>
                 <option value="Televisions">Televisions</option>
@@ -183,7 +183,7 @@ function ReorderRequestForm({ onSubmit }) {
               className={`w-full py-3 px-4 rounded-lg text-white font-medium transition duration-200 flex items-center justify-center space-x-2 ${
                 isSubmitting 
                   ? "bg-gray-400 cursor-not-allowed" 
-                  : "bg-[#78aae3] hover:bg-[#587fb8]"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
               }`}
             >
               {isSubmitting ? (
