@@ -24,7 +24,7 @@ const InventoryPage = () => {
       <InventoryNavbar />
 
       {/* Sub Routes */}
-      <div className="flex-1 p-6">
+      <div className="flex-1">
         <Routes>
           {/* Default route → redirect to dashboard */}
           <Route index element={<Navigate to="dashboard" replace />} />
