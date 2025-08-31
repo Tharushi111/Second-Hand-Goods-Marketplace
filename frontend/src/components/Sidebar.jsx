@@ -8,7 +8,6 @@ import {
   faTruck,
   faChartLine,
   faCommentDots,
-  faTags, 
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { NavLink } from "react-router-dom"; 
@@ -21,7 +20,6 @@ const Sidebar = () => {
     { name: "Order", icon: faClipboardList, path: "/order" },
     { name: "Product", icon: faBoxOpen, path: "/product" },
     { name: "Inventory", icon: faBoxes, path: "/inventory" },
-    { name: "Category", icon: faTags, path: "/category" },
     { name: "Supplier", icon: faTruck, path: "/supplier" },
     { name: "Finance", icon: faChartLine, path: "/finance" },
     { name: "Feedback", icon: faCommentDots, path: "/feedback" },

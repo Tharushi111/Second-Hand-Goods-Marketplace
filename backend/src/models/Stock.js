@@ -3,48 +3,42 @@ import mongoose from "mongoose";
 const stockSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, "Product name is required"],
-    validate: {
-      validator: function(v) {
-        return /^[A-Za-z\s]+$/.test(v); 
-      },
-      message: props => `${props.value} is not a valid name. Only letters allowed.`
-    }
+    required: [true, "Stock name is required"],
+    trim: true,
+    maxlength: [100, "Stock name cannot exceed 100 characters"]
   },
   category: {
     type: String,
     required: [true, "Category is required"],
-    enum: {
-      values: ["Laptop", "Smartphone", "Tablet", "Accessories", "Other"], 
-      message: "{VALUE} is not a valid category"
-    }
+    trim: true
   },
   quantity: {
     type: Number,
     required: [true, "Quantity is required"],
     min: [0, "Quantity cannot be negative"],
-    validate: {
-      validator: Number.isInteger,
-      message: "Quantity must be an integer"
-    }
+    default: 0
   },
   reorderLevel: {
     type: Number,
     required: [true, "Reorder level is required"],
     min: [0, "Reorder level cannot be negative"],
-    validate: {
-      validator: Number.isInteger,
-      message: "Reorder level must be an integer"
-    }
+    default: 0
   },
-  supplier: {
+  description: {
     type: String,
-    required: [true, "Supplier is required"]
+    trim: true,
+    maxlength: [500, "Description cannot exceed 500 characters"]
   },
-  dateAdded: {
+  // Supplier part commented out
+  // supplier: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Supplier"
+  // },
+  createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-export default mongoose.model("Stock", stockSchema);
+const Stock = mongoose.model("Stock", stockSchema);
+export default Stock;
