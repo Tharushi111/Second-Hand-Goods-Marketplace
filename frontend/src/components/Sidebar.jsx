@@ -1,4 +1,3 @@
-// Sidebar.jsx
 import React from "react";
 import {
   faHome,
@@ -9,8 +8,10 @@ import {
   faTruck,
   faChartLine,
   faCommentDots,
+  faTags, 
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { NavLink } from "react-router-dom"; 
 import logo from "../assets/ReBuy.png";
 
 const Sidebar = () => {
@@ -20,6 +21,7 @@ const Sidebar = () => {
     { name: "Order", icon: faClipboardList, path: "/order" },
     { name: "Product", icon: faBoxOpen, path: "/product" },
     { name: "Inventory", icon: faBoxes, path: "/inventory" },
+    { name: "Category", icon: faTags, path: "/category" },
     { name: "Supplier", icon: faTruck, path: "/supplier" },
     { name: "Finance", icon: faChartLine, path: "/finance" },
     { name: "Feedback", icon: faCommentDots, path: "/feedback" },
@@ -35,31 +37,27 @@ const Sidebar = () => {
         <img
           src={logo}
           alt="ReBuy.lk Logo"
-          className="h-20 w-auto" 
+          className="h-20 w-auto"
         />
       </div>
 
       {/* Menu Section */}
       <nav className="flex-1 p-4">
         {menuItems.map((item, index) => (
-          <a
+          <NavLink
             key={index}
-            href={item.path}
-            className="flex items-center p-3 rounded-lg transition-colors mb-2"
-            style={{
-              backgroundColor: "transparent",
-              color: "#ffffff",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#123499")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
+            to={item.path}
+            className={({ isActive }) =>
+              `flex items-center p-3 rounded-lg mb-2 transition-colors ${
+                isActive
+                  ? "bg-blue-600 text-white shadow-md" 
+                  : "text-gray-200 hover:bg-blue-500"
+              }`
             }
           >
             <FontAwesomeIcon icon={item.icon} className="mr-3" />
             {item.name}
-          </a>
+          </NavLink>
         ))}
       </nav>
     </div>
