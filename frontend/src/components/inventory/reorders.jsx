@@ -95,7 +95,7 @@ const ReorderRequests = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
   
-    doc.addImage("/ReBuy.png", "PNG", 14, 10, 20, 20);
+    doc.addImage("/ReBuyLogo.png", "PNG", 14, 10, 20, 20);
     doc.setFontSize(16);
     doc.text("ReBuy.lk", 40, 20);
     doc.setFontSize(11);

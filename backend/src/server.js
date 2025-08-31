@@ -17,7 +17,7 @@ app.use(express.json());
 app.use("/api/stock", stockRoutes);
 app.use("/api/reorders", reorderRoutes);
 
-// Connect to MongoDB and then start server
+// Connect to MongoDB and start server
 const PORT = process.env.PORT || 5001;
 
 connectDB().then(() => {
