@@ -169,8 +169,6 @@ const ReorderRequests = () => {
           </div>
 
           {/* Date filter */}
-
-          {/* Date filter */}
           <div className="flex-1 w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <FontAwesomeIcon icon={faFilter} className="mr-2 text-gray-600" />
