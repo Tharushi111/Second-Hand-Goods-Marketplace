@@ -13,7 +13,7 @@ function App() {
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-col flex-1 min-h-screen">
         {/* Navbar */}
         <Navbar />
 
