@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Horizontal scroll style */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb transparent;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 10px;
+}
+
+/* Change color of calendar picker icon */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(50%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(90%);
+  cursor: pointer;
+}
+
+
+  
