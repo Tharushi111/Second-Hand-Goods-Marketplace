@@ -122,11 +122,12 @@ const AddStockForm = () => {
               Reorder Level <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={reorderLevel}
-              onChange={(e) => setReorderLevel(e.target.value)}
+              onChange={(e) => setReorderLevel(e.target.value.replace(/\D/g, ""))} // strips non-digits
               placeholder="e.g., 5"
-              min={0}
               className={`w-full px-4 py-2 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.reorderLevel ? "border-red-500" : "border-gray-300"
               }`}

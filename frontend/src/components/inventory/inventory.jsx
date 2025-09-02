@@ -6,6 +6,8 @@ import UpdateReorderForm from "./update-reorder.jsx";
 import ReorderRequests from "./reorders.jsx";
 import AddStockForm from "./add.jsx";
 import StockProducts from "./products.jsx";
+import UpdateProduct from "./UpdateProduct.jsx";
+import StockReport from "./reports.jsx";
 import axios from "axios";
 import InventoryDashboard from "./dashboard.jsx";
 
@@ -34,10 +36,11 @@ const InventoryPage = () => {
           <Route path="dashboard" element={<InventoryDashboard />} />
           <Route path="products" element={<StockProducts />} />
           <Route path="add" element={<AddStockForm />} />
+          <Route path="update-product/:id" element={<UpdateProduct />} />
           <Route path="reorders" element={<ReorderRequests />} />
           <Route path="create-reorder" element={<ReorderRequestForm onSubmit={handleReorderSubmit} />} />
           <Route path="update-reorder" element={<UpdateReorderForm />} />
-          <Route path="reports" element={<h2 className="text-xl font-bold">📑 Stock Reports</h2>} />
+          <Route path="reports" element={<StockReport />} />
         </Routes>
       </div>
     </div>

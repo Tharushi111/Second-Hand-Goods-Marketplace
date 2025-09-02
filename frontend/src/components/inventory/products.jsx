@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoImg from "../../assets/ReBuyLogo.png";
+import { useNavigate } from "react-router-dom"; 
 
 const StockProducts = () => {
   const [stocks, setStocks] = useState([]);
@@ -24,6 +25,7 @@ const StockProducts = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStocks = async () => {
@@ -54,9 +56,9 @@ const StockProducts = () => {
   };
 
   const handleUpdate = (stock) => {
-    toast.success("Update functionality placeholder", { position: "top-center" });
+    navigate(`/inventory/update-product/${stock._id}`);
   };
-
+  
   const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       try {
