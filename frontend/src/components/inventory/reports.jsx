@@ -32,37 +32,157 @@ export default function StockReport() {
     acc[cat] = (acc[cat] || 0) + s.quantity;
     return acc;
   }, {});
+// Export PDF
+const handleDownloadPDF = () => {
+  const doc = new jsPDF();
+  const margin = 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let currentY = 40;
 
-  // Export PDF
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text(" Stock Summary Report", 14, 16);
-    doc.setFontSize(12);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 24);
+  // Add logo on the left
+  try {
+    doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 30, 30);
+  } catch (e) {
+    console.log("Logo not found, proceeding without it");
+  }
 
-    autoTable(doc, {
-      startY: 35,
-      head: [["Metric", "Value"]],
-      body: [
-        ["Total Products", totalProducts],
-        ["In Stock (>10)", inStock],
-        ["Low Stock (1-10)", lowStock],
-        ["Out of Stock", outOfStock],
-      ],
-      theme: "grid",
-    });
+  // Company details on the right
+  doc.setFontSize(16).setTextColor(40, 103, 178);
+  doc.text("ReBuy.lk", pageWidth - margin, 20, { align: "right" });
+  
+  doc.setFontSize(10).setTextColor(100, 100, 100);
+  doc.text("123 Main Street, Colombo, Sri Lanka", pageWidth - margin, 27, { align: "right" });
+  doc.text("Contact: +94 77 123 4567", pageWidth - margin, 34, { align: "right" });
+  doc.text("Email: info@rebuy.lk", pageWidth - margin, 41, { align: "right" });
 
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
-      head: [["Category", "Total Units"]],
-      body: Object.entries(categoryTotals).map(([cat, qty]) => [cat, qty]),
-      theme: "grid",
-    });
+  // Add a decorative line separator
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, 50, pageWidth - margin, 50);
 
-    doc.save("stock_summary_report.pdf");
-  };
+  // Report title
+  doc.setFontSize(18).setTextColor(40, 40, 40);
+  doc.setFont(undefined, "bold");
+  doc.text("Stock Summary Report", pageWidth / 2, 65, { align: "center" });
+  
+  doc.setFontSize(12).setFont(undefined, "normal");
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 75, { align: "center" });
 
+  // First table - Stock Metrics
+  autoTable(doc, {
+    startY: 85,
+    head: [["Metric", "Value"]],
+    body: [
+      ["Total Products", totalProducts],
+      ["In Stock (>10)", inStock],
+      ["Low Stock (1-10)", lowStock],
+      ["Out of Stock", outOfStock],
+    ],
+    theme: "grid",
+    headStyles: {
+      fillColor: [40, 103, 178],
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    styles: {
+      fontSize: 11,
+      cellPadding: 4,
+      lineColor: [220, 220, 220]
+    },
+    alternateRowStyles: {
+      fillColor: [245, 247, 250]
+    },
+    margin: { left: margin, right: margin },
+    didDrawPage: function(data) {
+      // Add a title above the table
+      doc.setFontSize(14).setTextColor(40, 103, 178);
+      doc.text("Stock Overview", margin, 80);
+    }
+  });
+
+  // Second table - Category Totals
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 20,
+    head: [["Category", "Total Units"]],
+    body: Object.entries(categoryTotals).map(([cat, qty]) => [cat, qty]),
+    theme: "grid",
+    headStyles: {
+      fillColor: [40, 103, 178],
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    styles: {
+      fontSize: 11,
+      cellPadding: 4,
+      lineColor: [220, 220, 220]
+    },
+    alternateRowStyles: {
+      fillColor: [245, 247, 250]
+    },
+    margin: { left: margin, right: margin },
+    didDrawPage: function(data) {
+      // Add a title above the table
+      doc.setFontSize(14).setTextColor(40, 103, 178);
+      doc.text("Inventory by Category", margin, doc.lastAutoTable.finalY + 10);
+    }
+  });
+
+  // Add summary statistics at the bottom with adequate spacing
+  const finalY = doc.lastAutoTable.finalY + 30; // Increased spacing here
+  
+  if (finalY < pageHeight - 80) { // Increased minimum space requirement
+    doc.setFontSize(12).setTextColor(40, 103, 178);
+    doc.text("Quick Summary", margin, finalY);
+    
+    doc.setFontSize(10).setTextColor(80, 80, 80);
+    const inStockPercent = ((inStock / totalProducts) * 100).toFixed(1);
+    const lowStockPercent = ((lowStock / totalProducts) * 100).toFixed(1);
+    const outOfStockPercent = ((outOfStock / totalProducts) * 100).toFixed(1);
+    
+    doc.text(`In Stock: ${inStock} (${inStockPercent}%)`, margin + 5, finalY + 15);
+    doc.text(`Low Stock: ${lowStock} (${lowStockPercent}%)`, margin + 5, finalY + 30);
+    doc.text(`Out of Stock: ${outOfStock} (${outOfStockPercent}%)`, margin + 5, finalY + 45);
+    
+    // Add decorative line above footer with more spacing
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, finalY + 60, pageWidth - margin, finalY + 60);
+    
+    // Footer with increased spacing from content
+    doc.setFontSize(8).setTextColor(150, 150, 150);
+    doc.text(`Report generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 
+             margin, finalY + 75);
+    doc.text("Page 1 of 1", pageWidth - margin, finalY + 75, { align: "right" });
+  } else {
+    // If there's not enough space, add a new page for the summary and footer
+    doc.addPage();
+    
+    // Summary on new page
+    doc.setFontSize(12).setTextColor(40, 103, 178);
+    doc.text("Quick Summary", margin, 40);
+    
+    doc.setFontSize(10).setTextColor(80, 80, 80);
+    const inStockPercent = ((inStock / totalProducts) * 100).toFixed(1);
+    const lowStockPercent = ((lowStock / totalProducts) * 100).toFixed(1);
+    const outOfStockPercent = ((outOfStock / totalProducts) * 100).toFixed(1);
+    
+    doc.text(`In Stock: ${inStock} (${inStockPercent}%)`, margin + 5, 55);
+    doc.text(`Low Stock: ${lowStock} (${lowStockPercent}%)`, margin + 5, 70);
+    doc.text(`Out of Stock: ${outOfStock} (${outOfStockPercent}%)`, margin + 5, 85);
+    
+    // Add decorative line above footer
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 100, pageWidth - margin, 100);
+    
+    // Footer with proper spacing
+    doc.setFontSize(8).setTextColor(150, 150, 150);
+    doc.text(`Report generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 
+             margin, 115);
+    doc.text("Page 2 of 2", pageWidth - margin, 115, { align: "right" });
+  }
+
+  doc.save("stock_summary_report.pdf");
+};
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

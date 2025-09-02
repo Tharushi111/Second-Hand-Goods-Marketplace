@@ -32,6 +32,7 @@ import {
   FaArrowDown,
   FaInfoCircle
 } from "react-icons/fa";
+import jsPDF from "jspdf";
 
 // Register ChartJS components
 ChartJS.register(
@@ -68,6 +69,181 @@ const InventoryDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const generatePDF = () => {
+    const doc = new jsPDF("p", "pt", "a4");
+    const margin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let currentY = 40;
+  
+    // Add larger logo on the left (40x40)
+    try {
+      doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 40, 40);
+    } catch (e) {
+      console.log("Logo not found, proceeding without it");
+      
+      // Add a placeholder if logo is not found
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, 15, 40, 40, 'F');
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(margin, 15, 40, 40, 'S');
+      doc.setFontSize(10).setTextColor(150, 150, 150);
+      doc.text("Logo", margin + 20, 35, { align: "center" });
+    }
+  
+    // Company details on the right - adjusted to align with larger logo
+    doc.setFontSize(18).setTextColor(40, 103, 178);
+    doc.text("ReBuy.lk", pageWidth - margin, 25, { align: "right" });
+    
+    doc.setFontSize(11).setTextColor(100, 100, 100);
+    doc.text("77A, Market Street, Colombo, Sri Lanka", pageWidth - margin, 40, { align: "right" });
+    doc.text("Contact: +94 77 321 4567", pageWidth - margin, 55, { align: "right" });
+    doc.text("Email: rebuy@gmail.com", pageWidth - margin, 70, { align: "right" });
+  
+    currentY = 85; // Adjusted to account for larger logo and better spacing
+  
+    // Header with decorative line
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    
+    doc.setFontSize(20).setTextColor(40, 40, 40);
+    doc.setFont(undefined, "bold");
+    doc.text("Inventory Report", pageWidth / 2, currentY + 25, { align: "center" });
+    
+    doc.setFontSize(12).setFont(undefined, "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, currentY + 45, { align: "center" });
+  
+    currentY += 75;
+  
+    // Summary section with box
+    const totalItems = stocks.reduce((sum, s) => sum + s.quantity, 0);
+    const inStock = stocks.filter((s) => s.quantity > s.reorderLevel).length;
+    const lowStock = stocks.filter(
+      (s) => s.quantity > 0 && s.quantity <= s.reorderLevel
+    ).length;
+    const outOfStock = stocks.filter((s) => s.quantity === 0).length;
+  
+    // Summary box
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 90, 5, 5, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 90, 5, 5, 'S');
+    
+    doc.setFontSize(16).setTextColor(40, 103, 178);
+    doc.text("Summary", margin + 15, currentY + 20);
+    
+    doc.setFontSize(12);
+    const summaryX = margin + 20;
+    const summaryY = currentY + 45;
+    const colWidth = (pageWidth - 2 * margin) / 2;
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Total Items:`, summaryX, summaryY);
+    doc.setTextColor(40, 40, 40).setFont(undefined, "bold");
+    doc.text(`${totalItems}`, summaryX + 90, summaryY);
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`In Stock Items:`, summaryX, summaryY + 20);
+    doc.setTextColor(59, 168, 89).setFont(undefined, "bold");
+    doc.text(`${inStock}`, summaryX + 90, summaryY + 20);
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Low Stock Items:`, summaryX + colWidth, summaryY);
+    doc.setTextColor(237, 137, 54).setFont(undefined, "bold");
+    doc.text(`${lowStock}`, summaryX + colWidth + 110, summaryY);
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Out of Stock Items:`, summaryX + colWidth, summaryY + 20);
+    doc.setTextColor(219, 56, 75).setFont(undefined, "bold");
+    doc.text(`${outOfStock}`, summaryX + colWidth + 110, summaryY + 20);
+  
+    currentY += 110;
+  
+    // Table Header with more space below
+    doc.setFillColor(40, 103, 178);
+    doc.rect(margin, currentY, pageWidth - 2 * margin, 35, 'F'); 
+    
+    doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
+    doc.setFontSize(12);
+    doc.text("Category", margin + 15, currentY + 22); 
+    doc.text("Quantity", margin + 180, currentY + 22);
+    doc.text("Reorder Level", margin + 280, currentY + 22);
+    doc.text("Status", margin + 400, currentY + 22);
+  
+    currentY += 45; 
+  
+    // Table Rows with increased spacing
+    let isEven = false;
+    
+    stocks.forEach((item, index) => {
+      // Alternate row colors
+      if (isEven) {
+        doc.setFillColor(245, 247, 250);
+        doc.rect(margin, currentY - 10, pageWidth - 2 * margin, 25, 'F'); 
+      }
+      
+      let status = "In Stock";
+      let statusColor = [59, 168, 89]; // Green
+      
+      if (item.quantity === 0) {
+        status = "Out of Stock";
+        statusColor = [219, 56, 75]; // Red
+      } else if (item.quantity <= item.reorderLevel) {
+        status = "Low Stock";
+        statusColor = [237, 137, 54]; // Orange
+      }
+  
+      doc.setTextColor(50, 50, 50);
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(11);
+      doc.text(item.category, margin + 15, currentY + 5);
+      doc.text(String(item.quantity), margin + 180, currentY + 5);
+      doc.text(String(item.reorderLevel), margin + 280, currentY + 5);
+      
+      doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.text(status, margin + 400, currentY + 5);
+  
+      currentY += 25; 
+      isEven = !isEven;
+  
+      // Add space between rows (every 5 rows)
+      if (index % 5 === 4) {
+        currentY += 5;
+      }
+  
+      // Check if need a new page
+      if (currentY > 730) { 
+        doc.addPage();
+        currentY = 40;
+        
+        // Add header to new page
+        doc.setFillColor(40, 103, 178);
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 35, 'F');
+        
+        doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
+        doc.setFontSize(12);
+        doc.text("Category", margin + 15, currentY + 22);
+        doc.text("Quantity", margin + 180, currentY + 22);
+        doc.text("Reorder Level", margin + 280, currentY + 22);
+        doc.text("Status", margin + 400, currentY + 22);
+        
+        currentY += 45;
+        isEven = false;
+      }
+    });
+  
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9).setTextColor(150, 150, 150);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 20, { align: "right" });
+      doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, doc.internal.pageSize.getHeight() - 20);
+    }
+  
+    doc.save("inventory_report.pdf");
+  };
+  
   // Stats
   const totalItems = stocks.reduce((sum, stock) => sum + stock.quantity, 0);
   const outOfStockItems = stocks.filter((s) => s.quantity === 0).length;
@@ -158,6 +334,7 @@ const InventoryDashboard = () => {
             </p>
           </div>
           <motion.button
+            onClick={generatePDF}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="flex items-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-3 rounded-xl shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 mt-4 md:mt-0 group"
@@ -165,6 +342,7 @@ const InventoryDashboard = () => {
             <FaFileExport className="text-white mr-2 group-hover:animate-bounce" />
             Export PDF Report
           </motion.button>
+
         </div>
 
         {/* Stats Cards */}
