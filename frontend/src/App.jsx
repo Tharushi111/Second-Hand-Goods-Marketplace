@@ -4,6 +4,9 @@ import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Inventory from "./components/inventory/inventory.jsx";
+import ProductTable from "./components/product/products.jsx";
+import AddProductForm from "./components/product/addProduct.jsx";
+import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -23,7 +26,13 @@ function App() {
             <Route path="/" element={<h2 className="text-2xl font-bold">Home Page</h2>} />
             <Route path="/users" element={<h2 className="text-2xl font-bold">Users Page</h2>} />
             <Route path="/orders" element={<h2 className="text-2xl font-bold">Orders Page</h2>} />
-            <Route path="/products" element={<h2 className="text-2xl font-bold">Products Page</h2>} />
+            <Route path="/product" element={<ProductTable navigateToaddProduct={(id) => {
+                if (id) navigate(`/product/update/${id}`);
+                else navigate("/product/add");
+              }} />}
+            />
+           <Route path="/add-product" element={<AddProductForm />} />
+           <Route path="/update-product/:id" element={<UpdateProductForm />} />
             <Route path="/inventory/*" element={<Inventory />} />
             <Route path="/suppliers" element={<h2 className="text-2xl font-bold">Suppliers Page</h2>} />
             <Route path="/finance" element={<h2 className="text-2xl font-bold">Finance Page</h2>} />
