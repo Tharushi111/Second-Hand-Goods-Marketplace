@@ -3,35 +3,39 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import AdminLogin from "./components/adminLogin.jsx";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import Footer from "./components/Footer.jsx";
 import Inventory from "./components/inventory/inventory.jsx";
 import ProductTable from "./components/product/products.jsx";
 import AddProductForm from "./components/product/addProduct.jsx";
 import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
-import { Toaster } from "react-hot-toast";
+import ProductListing from "./components/product/productListing.jsx";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/admin/login";
+
+  // Paths that should NOT display admin layout
+  const noAdminLayoutRoutes = ["/admin/login", "/productListing"];
+  const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar for all pages except login */}
-      {!isLoginPage && <Sidebar />}
+      {/* Sidebar for admin pages only */}
+      {!isNoAdminLayout && <Sidebar />}
 
       {/* Main content area */}
       <div className="flex flex-col flex-1 h-screen">
-        {/* Navbar */}
-        {!isLoginPage && <Navbar />}
+        {/* Navbar for admin pages only */}
+        {!isNoAdminLayout && <Navbar />}
 
         {/* Scrollable content */}
         <main className="flex-1 overflow-auto p-6">
           <Routes>
-            {/* Public Route */}
+            {/* Public Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/productListing" element={<ProductListing />} />
 
-            {/* Protected Routes */}
+            {/* Admin Protected Routes */}
             <Route
               path="/"
               element={
@@ -40,7 +44,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/users"
               element={
@@ -49,7 +52,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/orders"
               element={
@@ -58,7 +60,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/product"
               element={
@@ -83,7 +84,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/inventory/*"
               element={
@@ -92,8 +92,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
-            {/* Other Pages */}
             <Route
               path="/suppliers"
               element={
@@ -129,12 +127,9 @@ function App() {
           </Routes>
         </main>
 
-        {/* Footer */}
-        <Footer />
+        {/* Footer for admin pages only */}
+        {!isNoAdminLayout && <Footer />}
       </div>
-
-      {/* Toast Notifications */}
-      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 }
