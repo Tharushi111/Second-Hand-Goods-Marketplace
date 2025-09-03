@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import stockRoutes from "./routes/stockRoutes.js";
 import reorderRoutes from "./routes/ReorderRequestRoutes.js";
 import productRoutes from "./routes/productRoutes.js"; 
+import adminAuthRoutes from "./routes/adminAuthRoutes.js";
 import multer from "multer"; 
 
 dotenv.config();
@@ -17,9 +18,11 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads")); 
 
 // Routes
+app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/stock", stockRoutes);
 app.use("/api/reorders", reorderRoutes);
 app.use("/api/products", productRoutes); 
+
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5001;

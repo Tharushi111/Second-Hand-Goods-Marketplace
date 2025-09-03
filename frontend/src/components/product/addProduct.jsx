@@ -159,27 +159,34 @@ export default function AddProductForm() {
 
             {/* Price and Image */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-              <label className="flex items-center text-lg font-medium text-gray-700">
-                <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price <span className="text-red-500">*</span>
-              </label>
+            <div className="space-y-2">
+                <label className="flex items-center text-lg font-medium text-gray-700">
+                  <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span className="text-gray-500">Rs</span>
                   </div>
                   <input
-                    type="number"
+                    type="text" 
                     name="price"
                     placeholder="0.00"
                     value={formData.price}
-                    onChange={handleChange}
-                    min="0.01"
-                    step="0.01"
+                    onChange={(e) => {
+                      
+                      let value = e.target.value.replace(/[^0-9.]/g, "");
+                      const parts = value.split(".");
+                      if (parts.length > 2) {
+                        value = parts[0] + "." + parts[1]; 
+                      }
+                      handleChange({ target: { name: "price", value } });
+                    }}
                     className="w-full pl-8 p-4 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
               </div>
+
 
               <div className="space-y-2">
                 <label className="flex items-center text-lg font-medium text-gray-700">
