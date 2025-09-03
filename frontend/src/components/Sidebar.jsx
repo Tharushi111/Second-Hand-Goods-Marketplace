@@ -21,10 +21,10 @@ const Sidebar = () => {
   const menuItems = [
     { name: "Home", icon: faHome, path: "/" },
     { name: "Users", icon: faUsers, path: "/users" },
-    { name: "Order", icon: faClipboardList, path: "/order" },
+    { name: "Order", icon: faClipboardList, path: "/orders" },
     { name: "Product", icon: faBoxOpen, path: "/product" },
     { name: "Inventory", icon: faBoxes, path: "/inventory" },
-    { name: "Supplier", icon: faTruck, path: "/supplier" },
+    { name: "Supplier", icon: faTruck, path: "/suppliers" },
     { name: "Finance", icon: faChartLine, path: "/finance" },
     { name: "Feedback", icon: faCommentDots, path: "/feedback" },
   ];
@@ -41,8 +41,9 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-full w-64 bg-[#001840] text-white shadow-lg transform transition-transform duration-300 z-50 
-          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        className={`fixed md:relative top-0 left-0 h-screen w-64 bg-[#001840] text-white shadow-lg z-50 flex flex-col overflow-y-auto transform transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
         {/* Logo Section for Desktop */}
         <div className="hidden md:flex justify-center items-center p-6 border-b border-blue-300">
@@ -62,7 +63,7 @@ const Sidebar = () => {
                     : "text-gray-200 hover:bg-blue-500"
                 }`
               }
-              onClick={() => setIsOpen(false)} // Close menu on mobile when clicked
+              onClick={() => setIsOpen(false)} // Close mobile menu on click
             >
               <FontAwesomeIcon icon={item.icon} className="mr-3" />
               {item.name}
