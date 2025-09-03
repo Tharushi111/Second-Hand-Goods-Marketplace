@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { motion } from "framer-motion";
 import { Doughnut, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,8 +11,30 @@ import {
   BarElement,
   Title
 } from "chart.js";
+import {
+  FaWarehouse,
+  FaClock,
+  FaFileExport,
+  FaBoxes,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaTimesCircle,
+  FaBell,
+  FaBan,
+  FaExclamationCircle,
+  FaListOl,
+  FaChartPie,
+  FaChartBar,
+  FaLayerGroup,
+  FaSearch,
+  FaTag,
+  FaCubes,
+  FaArrowDown,
+  FaInfoCircle
+} from "react-icons/fa";
+import jsPDF from "jspdf";
 
-// Register required components
+// Register ChartJS components
 ChartJS.register(
   ArcElement,
   Tooltip,
@@ -48,53 +69,181 @@ const InventoryDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handlePdfDownload = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Inventory Report", 14, 15);
-    autoTable(doc, {
-      head: [["Category", "Quantity", "Reorder Level", "Status"]],
-      body: stocks.map((stock) => {
-        let status = "In Stock";
-        if (stock.quantity === 0) status = "Out of Stock";
-        else if (stock.quantity <= stock.reorderLevel) status = "Low Stock";
-        return [
-          stock.category,
-          stock.quantity,
-          stock.reorderLevel,
-          status,
-        ];
-      }),
-    });
-    doc.save("Inventory_Report.pdf");
-  };
-
-  // Get status details for a stock item
-  const getStatusDetails = (stock) => {
-    if (stock.quantity === 0) {
-      return {
-        status: "Out of Stock",
-        color: "bg-red-100 text-red-700",
-        icon: "fa-times-circle",
-        badgeColor: "bg-red-500"
-      };
-    } else if (stock.quantity <= stock.reorderLevel) {
-      return {
-        status: "Low Stock",
-        color: "bg-yellow-100 text-yellow-700",
-        icon: "fa-exclamation-triangle",
-        badgeColor: "bg-yellow-500"
-      };
-    } else {
-      return {
-        status: "In Stock",
-        color: "bg-green-100 text-green-700",
-        icon: "fa-check-circle",
-        badgeColor: "bg-green-500"
-      };
+  const generatePDF = () => {
+    const doc = new jsPDF("p", "pt", "a4");
+    const margin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let currentY = 40;
+  
+    // Add larger logo on the left (40x40)
+    try {
+      doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 40, 40);
+    } catch (e) {
+      console.log("Logo not found, proceeding without it");
+      
+      // Add a placeholder if logo is not found
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, 15, 40, 40, 'F');
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(margin, 15, 40, 40, 'S');
+      doc.setFontSize(10).setTextColor(150, 150, 150);
+      doc.text("Logo", margin + 20, 35, { align: "center" });
     }
+  
+    // Company details on the right - adjusted to align with larger logo
+    doc.setFontSize(18).setTextColor(40, 103, 178);
+    doc.text("ReBuy.lk", pageWidth - margin, 25, { align: "right" });
+    
+    doc.setFontSize(11).setTextColor(100, 100, 100);
+    doc.text("77A, Market Street, Colombo, Sri Lanka", pageWidth - margin, 40, { align: "right" });
+    doc.text("Contact: +94 77 321 4567", pageWidth - margin, 55, { align: "right" });
+    doc.text("Email: rebuy@gmail.com", pageWidth - margin, 70, { align: "right" });
+  
+    currentY = 85; // Adjusted to account for larger logo and better spacing
+  
+    // Header with decorative line
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    
+    doc.setFontSize(20).setTextColor(40, 40, 40);
+    doc.setFont(undefined, "bold");
+    doc.text("Inventory Report", pageWidth / 2, currentY + 25, { align: "center" });
+    
+    doc.setFontSize(12).setFont(undefined, "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, currentY + 45, { align: "center" });
+  
+    currentY += 75;
+  
+    // Summary section with box
+    const totalItems = stocks.reduce((sum, s) => sum + s.quantity, 0);
+    const inStock = stocks.filter((s) => s.quantity > s.reorderLevel).length;
+    const lowStock = stocks.filter(
+      (s) => s.quantity > 0 && s.quantity <= s.reorderLevel
+    ).length;
+    const outOfStock = stocks.filter((s) => s.quantity === 0).length;
+  
+    // Summary box
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 90, 5, 5, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 90, 5, 5, 'S');
+    
+    doc.setFontSize(16).setTextColor(40, 103, 178);
+    doc.text("Summary", margin + 15, currentY + 20);
+    
+    doc.setFontSize(12);
+    const summaryX = margin + 20;
+    const summaryY = currentY + 45;
+    const colWidth = (pageWidth - 2 * margin) / 2;
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Total Items:`, summaryX, summaryY);
+    doc.setTextColor(40, 40, 40).setFont(undefined, "bold");
+    doc.text(`${totalItems}`, summaryX + 90, summaryY);
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`In Stock Items:`, summaryX, summaryY + 20);
+    doc.setTextColor(59, 168, 89).setFont(undefined, "bold");
+    doc.text(`${inStock}`, summaryX + 90, summaryY + 20);
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Low Stock Items:`, summaryX + colWidth, summaryY);
+    doc.setTextColor(237, 137, 54).setFont(undefined, "bold");
+    doc.text(`${lowStock}`, summaryX + colWidth + 110, summaryY);
+    
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Out of Stock Items:`, summaryX + colWidth, summaryY + 20);
+    doc.setTextColor(219, 56, 75).setFont(undefined, "bold");
+    doc.text(`${outOfStock}`, summaryX + colWidth + 110, summaryY + 20);
+  
+    currentY += 110;
+  
+    // Table Header with more space below
+    doc.setFillColor(40, 103, 178);
+    doc.rect(margin, currentY, pageWidth - 2 * margin, 35, 'F'); 
+    
+    doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
+    doc.setFontSize(12);
+    doc.text("Category", margin + 15, currentY + 22); 
+    doc.text("Quantity", margin + 180, currentY + 22);
+    doc.text("Reorder Level", margin + 280, currentY + 22);
+    doc.text("Status", margin + 400, currentY + 22);
+  
+    currentY += 45; 
+  
+    // Table Rows with increased spacing
+    let isEven = false;
+    
+    stocks.forEach((item, index) => {
+      // Alternate row colors
+      if (isEven) {
+        doc.setFillColor(245, 247, 250);
+        doc.rect(margin, currentY - 10, pageWidth - 2 * margin, 25, 'F'); 
+      }
+      
+      let status = "In Stock";
+      let statusColor = [59, 168, 89]; // Green
+      
+      if (item.quantity === 0) {
+        status = "Out of Stock";
+        statusColor = [219, 56, 75]; // Red
+      } else if (item.quantity <= item.reorderLevel) {
+        status = "Low Stock";
+        statusColor = [237, 137, 54]; // Orange
+      }
+  
+      doc.setTextColor(50, 50, 50);
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(11);
+      doc.text(item.category, margin + 15, currentY + 5);
+      doc.text(String(item.quantity), margin + 180, currentY + 5);
+      doc.text(String(item.reorderLevel), margin + 280, currentY + 5);
+      
+      doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.text(status, margin + 400, currentY + 5);
+  
+      currentY += 25; 
+      isEven = !isEven;
+  
+      // Add space between rows (every 5 rows)
+      if (index % 5 === 4) {
+        currentY += 5;
+      }
+  
+      // Check if need a new page
+      if (currentY > 730) { 
+        doc.addPage();
+        currentY = 40;
+        
+        // Add header to new page
+        doc.setFillColor(40, 103, 178);
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 35, 'F');
+        
+        doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
+        doc.setFontSize(12);
+        doc.text("Category", margin + 15, currentY + 22);
+        doc.text("Quantity", margin + 180, currentY + 22);
+        doc.text("Reorder Level", margin + 280, currentY + 22);
+        doc.text("Status", margin + 400, currentY + 22);
+        
+        currentY += 45;
+        isEven = false;
+      }
+    });
+  
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9).setTextColor(150, 150, 150);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 20, { align: "right" });
+      doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, doc.internal.pageSize.getHeight() - 20);
+    }
+  
+    doc.save("inventory_report.pdf");
   };
-
+  
   // Stats
   const totalItems = stocks.reduce((sum, stock) => sum + stock.quantity, 0);
   const outOfStockItems = stocks.filter((s) => s.quantity === 0).length;
@@ -116,11 +265,7 @@ const InventoryDashboard = () => {
       {
         label: "Stock Status",
         data: [inStockItems, lowStockItems, outOfStockItems],
-        backgroundColor: [
-          "#10B981", 
-          "#F59E0B", 
-          "#EF4444"
-        ],
+        backgroundColor: ["#10B981", "#F59E0B", "#EF4444"],
         borderWidth: 0,
       },
     ],
@@ -171,11 +316,11 @@ const InventoryDashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 p-6 bg-white rounded-2xl shadow-lg">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 flex items-center">
-              <i className="fas fa-warehouse text-blue-500 mr-3"></i>
+              <FaWarehouse className="text-blue-500 mr-3" />
               Inventory Dashboard
             </h1>
             <p className="text-gray-500 mt-2 flex items-center">
-              <i className="fas fa-clock text-gray-400 mr-2"></i>
+              <FaClock className="text-gray-400 mr-2" />
               Last updated: {lastUpdated.toLocaleTimeString()}
               {!loading && (
                 <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -188,13 +333,16 @@ const InventoryDashboard = () => {
               )}
             </p>
           </div>
-          <button
-            onClick={handlePdfDownload}
+          <motion.button
+            onClick={generatePDF}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className="flex items-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-3 rounded-xl shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 mt-4 md:mt-0 group"
           >
-            <i className="fas fa-file-export text-white mr-2 group-hover:animate-bounce"></i>
+            <FaFileExport className="text-white mr-2 group-hover:animate-bounce" />
             Export PDF Report
-          </button>
+          </motion.button>
+
         </div>
 
         {/* Stats Cards */}
@@ -202,7 +350,7 @@ const InventoryDashboard = () => {
           <StatCard
             title="Total Items"
             value={totalItems}
-            icon="fas fa-boxes"
+            icon={FaBoxes}
             color="blue"
             loading={loading}
             description="All inventory items"
@@ -210,7 +358,7 @@ const InventoryDashboard = () => {
           <StatCard
             title="In Stock"
             value={inStockItems}
-            icon="fas fa-check-circle"
+            icon={FaCheckCircle}
             color="green"
             loading={loading}
             description="Adequate stock levels"
@@ -218,7 +366,7 @@ const InventoryDashboard = () => {
           <StatCard
             title="Low Stock"
             value={lowStockItems}
-            icon="fas fa-exclamation-triangle"
+            icon={FaExclamationTriangle}
             color="yellow"
             loading={loading}
             description="Needs reordering soon"
@@ -226,7 +374,7 @@ const InventoryDashboard = () => {
           <StatCard
             title="Out of Stock"
             value={outOfStockItems}
-            icon="fas fa-times-circle"
+            icon={FaTimesCircle}
             color="red"
             loading={loading}
             description="Immediate action needed"
@@ -235,10 +383,14 @@ const InventoryDashboard = () => {
 
         {/* Low Stock Alerts */}
         {lowStockList.length > 0 && (
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-6 mb-8 shadow-md">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-6 mb-8 shadow-md"
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-red-700 flex items-center">
-                <i className="fas fa-bell text-red-500 mr-3 text-xl animate-pulse"></i>
+                <FaBell className="text-red-500 mr-3 text-xl animate-pulse" />
                 Stock Alerts Requiring Attention
               </h2>
               <span className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded-full">
@@ -247,18 +399,22 @@ const InventoryDashboard = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {lowStockList.map((s) => (
-                <div
+                <motion.div
                   key={s._id}
-                  className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                  whileHover={{ y: -5 }}
+                  className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex items-center">
                     <div className={`p-3 rounded-full mr-4 ${s.quantity === 0 ? 'bg-red-100 text-red-500' : 'bg-yellow-100 text-yellow-500'}`}>
-                      <i className={`fas ${s.quantity === 0 ? 'fa-ban text-lg' : 'fa-exclamation-circle text-lg'}`}></i>
+                      {s.quantity === 0 ? 
+                        <FaBan className="text-lg" /> : 
+                        <FaExclamationCircle className="text-lg" />
+                      }
                     </div>
                     <div>
                       <span className="font-medium text-gray-800 block">{s.category}</span>
                       <span className="text-xs text-gray-500 flex items-center">
-                        <i className="fas fa-list-ol mr-1"></i>
+                        <FaListOl className="mr-1" />
                         Reorder at: {s.reorderLevel}
                       </span>
                     </div>
@@ -270,211 +426,178 @@ const InventoryDashboard = () => {
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    <i className={`fas ${s.quantity === 0 ? 'fa-times mr-1' : 'fa-exclamation mr-1'}`}></i>
+                    {s.quantity === 0 ? 
+                      <FaTimesCircle className="mr-1" /> : 
+                      <FaExclamationTriangle className="mr-1" />
+                    }
                     {s.quantity === 0
                       ? "Out of Stock"
                       : `${s.quantity} remaining`}
                   </span>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Inventory Cards */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <i className="fas fa-boxes text-blue-500 mr-3"></i>
-                Inventory Overview
-                <span className="ml-3 bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                  {stocks.length} items
-                </span>
-              </h2>
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Doughnut Chart */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-md border border-gray-100"
+          >
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+              <FaChartPie className="text-blue-500 mr-3" />
+              Stock Status Distribution
+            </h2>
+            <div className="h-72">
+              <Doughnut data={doughnutData} options={doughnutOptions} />
             </div>
-            
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-              </div>
-            ) : stocks.length === 0 ? (
-              <div className="text-center py-12">
-                <i className="fas fa-search fa-3x text-gray-300 mb-4"></i>
-                <h3 className="text-lg font-medium text-gray-700">No inventory items found</h3>
-                <p className="text-gray-500 mt-1">Inventory will appear here when added</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {stocks.map((stock) => {
-                  const statusDetails = getStatusDetails(stock);
-                  const progressPercentage = Math.min(100, (stock.quantity / (stock.reorderLevel * 2)) * 100);
-                  
-                  return (
-                    <div key={stock._id} className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all duration-200">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center">
-                          <div className={`p-3 rounded-xl ${statusDetails.color} bg-opacity-20 mr-3`}>
-                            <i className={`fas fa-tag ${statusDetails.color.split(' ')[1]}`}></i>
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-800">{stock.category}</h3>
-                            <span className="text-xs text-gray-500 flex items-center mt-1">
-                              <i className="fas fa-list-ol mr-1"></i>
-                              Reorder at: {stock.reorderLevel}
-                            </span>
-                          </div>
-                        </div>
-                        <span className={`text-xs px-2 py-1 rounded-full ${statusDetails.color} flex items-center`}>
-                          <i className={`fas ${statusDetails.icon} mr-1`}></i>
-                          {statusDetails.status}
-                        </span>
-                      </div>
-                      
-                      <div className="mb-4">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm text-gray-600 flex items-center">
-                            <i className="fas fa-boxes mr-2"></i>
-                            Current Stock
-                          </span>
-                          <span className="font-semibold">{stock.quantity} units</span>
-                        </div>
-                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full ${statusDetails.badgeColor}`}
-                            style={{ width: `${progressPercentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center text-xs text-gray-500">
-                        <i className="fas fa-info-circle mr-1"></i>
-                        {stock.quantity === 0 ? (
-                          <span className="text-red-500">Immediate restocking required</span>
-                        ) : stock.quantity <= stock.reorderLevel ? (
-                          <span className="text-yellow-600">Needs to be reordered soon</span>
-                        ) : (
-                          <span className="text-green-600">Stock level is adequate</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+          </motion.div>
+
+          {/* Bar Chart */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-md border border-gray-100"
+          >
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+              <FaChartBar className="text-blue-500 mr-3" />
+              Inventory by Category
+            </h2>
+            <div className="h-72">
+              <Bar data={barData} options={barOptions} />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Inventory List */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-6 rounded-2xl shadow-md border border-gray-100"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+              <FaLayerGroup className="text-blue-500 mr-3" />
+              All Inventory Items
+              <span className="ml-3 bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                {stocks.length} items
+              </span>
+            </h2>
           </div>
 
-          {/* Charts */}
-          <div className="space-y-8">
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <i className="fas fa-chart-pie text-blue-500 mr-3"></i>
-                Stock Status Distribution
-              </h2>
-              <div className="h-72">
-                <Doughnut data={doughnutData} options={doughnutOptions} />
-              </div>
-              <div className="grid grid-cols-3 gap-2 mt-4">
-                <div className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-sm font-medium">In Stock</span>
-                  </div>
-                  <span className="text-lg font-bold text-green-700">{inStockItems}</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                    <span className="text-sm font-medium">Low Stock</span>
-                  </div>
-                  <span className="text-lg font-bold text-yellow-700">{lowStockItems}</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center">
-                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                    <span className="text-sm font-medium">Out of Stock</span>
-                  </div>
-                  <span className="text-lg font-bold text-red-700">{outOfStockItems}</span>
-                </div>
-              </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <i className="fas fa-chart-bar text-blue-500 mr-3"></i>
-                Inventory by Category
-              </h2>
-              <div className="h-72">
-                <Bar data={barData} options={barOptions} />
-              </div>
+          ) : stocks.length === 0 ? (
+            <div className="text-center py-12">
+              <FaSearch className="text-3xl text-gray-300 mb-4 mx-auto" />
+              <h3 className="text-lg font-medium text-gray-700">No inventory items found</h3>
+              <p className="text-gray-500 mt-1">Inventory will appear here when added</p>
             </div>
-          </div>
-        </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <FaTag className="inline mr-2" />Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <FaCubes className="inline mr-2" />Quantity
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <FaArrowDown className="inline mr-2" />Reorder Level
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <FaInfoCircle className="inline mr-2" />Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {stocks.map((stock) => {
+                    let statusColor = "bg-green-100 text-green-800";
+                    let StatusIcon = FaCheckCircle;
+                    let statusText = "In Stock";
+
+                    if (stock.quantity === 0) {
+                      statusColor = "bg-red-100 text-red-800";
+                      StatusIcon = FaTimesCircle;
+                      statusText = "Out of Stock";
+                    } else if (stock.quantity <= stock.reorderLevel) {
+                      statusColor = "bg-yellow-100 text-yellow-800";
+                      StatusIcon = FaExclamationTriangle;
+                      statusText = "Low Stock";
+                    }
+
+                    return (
+                      <tr key={stock._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <FaTag className="text-blue-600" />
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{stock.category}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{stock.quantity}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stock.reorderLevel}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}`}>
+                            <StatusIcon className="mr-1" /> {statusText}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );
 };
 
-// Enhanced StatCard component
-const StatCard = ({ title, value, icon, color, loading, description }) => {
+// StatCard component
+const StatCard = ({ title, value, icon: Icon, color, loading, description }) => {
   const colorMap = {
-    blue: { 
-      bg: "bg-blue-100", 
-      text: "text-blue-500", 
-      value: "text-blue-700",
-      gradient: "from-blue-500 to-blue-600",
-      light: "bg-blue-50"
-    },
-    green: { 
-      bg: "bg-green-100", 
-      text: "text-green-500", 
-      value: "text-green-700",
-      gradient: "from-green-500 to-green-600",
-      light: "bg-green-50"
-    },
-    yellow: { 
-      bg: "bg-yellow-100", 
-      text: "text-yellow-500", 
-      value: "text-yellow-700",
-      gradient: "from-yellow-500 to-yellow-600",
-      light: "bg-yellow-50"
-    },
-    red: { 
-      bg: "bg-red-100", 
-      text: "text-red-500", 
-      value: "text-red-700",
-      gradient: "from-red-500 to-red-600",
-      light: "bg-red-50"
-    }
+    blue: { bg: "bg-blue-100", text: "text-blue-500", value: "text-blue-700", gradient: "from-blue-500 to-blue-600", light: "bg-blue-50" },
+    green: { bg: "bg-green-100", text: "text-green-500", value: "text-green-700", gradient: "from-green-500 to-green-600", light: "bg-green-50" },
+    yellow: { bg: "bg-yellow-100", text: "text-yellow-500", value: "text-yellow-700", gradient: "from-yellow-500 to-yellow-600", light: "bg-yellow-50" },
+    red: { bg: "bg-red-100", text: "text-red-500", value: "text-red-700", gradient: "from-red-500 to-red-600", light: "bg-red-50" }
   };
 
   return (
-    <div className={`bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1 ${colorMap[color].light}`}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -5 }} className={`bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 ${colorMap[color].light}`}>
       <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-gray-500 text-sm font-medium mb-2 flex items-center">
-            <i className={`${icon} ${colorMap[color].text} mr-2`}></i>
+            <Icon className={`${colorMap[color].text} mr-2`} />
             {title}
           </h2>
-          {loading ? (
-            <div className="h-9 w-16 bg-gray-200 rounded-lg animate-pulse mt-1"></div>
-          ) : (
-            <p className={`text-3xl font-bold ${colorMap[color].value}`}>{value}</p>
-          )}
+          {loading ? <div className="h-9 w-16 bg-gray-200 rounded-lg animate-pulse mt-1"></div> : <p className={`text-3xl font-bold ${colorMap[color].value}`}>{value}</p>}
         </div>
         <div className={`p-3 rounded-xl ${colorMap[color].bg}`}>
-          <i className={`${icon} text-xl ${colorMap[color].text}`}></i>
+          <Icon className={`text-xl ${colorMap[color].text}`} />
         </div>
       </div>
       <p className="text-xs text-gray-500 mb-3">{description}</p>
       <div className="mt-2 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-        <div 
-          className={`h-full bg-gradient-to-r ${colorMap[color].gradient}`}
-          style={{ width: `${Math.min(100, (value / 50) * 100)}%` }}
-        ></div>
+        <div className={`h-full bg-gradient-to-r ${colorMap[color].gradient}`} style={{ width: `${Math.min(100, (value / 50) * 100)}%` }}></div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 export default InventoryDashboard;
+

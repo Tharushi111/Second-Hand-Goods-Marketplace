@@ -32,6 +32,7 @@ export default function AddProductForm() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
     if (name === "image") {
       setFormData({ ...formData, image: files[0] });
       if (files[0]) {
@@ -39,12 +40,16 @@ export default function AddProductForm() {
         reader.onload = () => setImagePreview(reader.result);
         reader.readAsDataURL(files[0]);
       } else setImagePreview(null);
-    } else setFormData({ ...formData, [name]: value });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!selectedStock) return toast.error("Please select a stock item.");
+    if (Number(formData.price) <= 0) return toast.error("Price must be a positive number.");
 
     setIsSubmitting(true);
     const data = new FormData();
@@ -57,13 +62,13 @@ export default function AddProductForm() {
       await axios.post("http://localhost:5001/api/products", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success("✅ Product added successfully!");
+      toast.success("Product added successfully!");
       setSelectedStock("");
       setFormData({ description: "", price: "", image: null });
       setImagePreview(null);
       navigate("/product");
     } catch {
-      toast.error("❌ Failed to add product");
+      toast.error("Failed to add product");
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +78,6 @@ export default function AddProductForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex items-center justify-center">
-      {/* ✅ Only Top Center Alerts */}
       <Toaster
         position="top-center"
         toastOptions={{
@@ -93,21 +97,20 @@ export default function AddProductForm() {
             <FaArrowLeft className="mr-2" /> Back to Products
           </button>
           <h2 className="text-3xl font-bold">Add New Product</h2>
-          <p className="text-blue-100 mt-2">
-            Fill in the details to add a new product to your inventory
-          </p>
+          <p className="text-blue-100 mt-2">Fill in the details to add a new product to your inventory</p>
         </div>
 
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Stock selection */}
             <div className="space-y-2">
-              <label className="block text-lg font-medium text-gray-700 flex items-center">
-                <FaBox className="mr-2 text-blue-500" /> Select Stock Item
+              <label className="flex items-center text-lg font-medium text-gray-700">
+                <FaBox className="mr-2 text-blue-500" /> Select Stock Item <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedStock}
                 onChange={handleStockChange}
-                className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                className="w-full p-4 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                 required
               >
                 <option value="">-- Select a stock item --</option>
@@ -119,6 +122,7 @@ export default function AddProductForm() {
               </select>
             </div>
 
+            {/* Display selected stock details */}
             {stockDetails && (
               <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                 <h3 className="font-medium text-blue-800 mb-2">Selected Product Details</h3>
@@ -137,9 +141,10 @@ export default function AddProductForm() {
               </div>
             )}
 
+            {/* Product description */}
             <div className="space-y-2">
-              <label className="block text-lg font-medium text-gray-700 flex items-center">
-                <FaAlignLeft className="mr-2 text-blue-500" /> Product Description
+              <label className="flex items-center text-lg font-medium text-gray-700">
+                <FaAlignLeft className="mr-2 text-blue-500" /> Product Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="description"
@@ -147,37 +152,45 @@ export default function AddProductForm() {
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-4 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               ></textarea>
             </div>
 
+            {/* Price and Image */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-lg font-medium text-gray-700 flex items-center">
-                  <FaDollarSign className="mr-2 text-blue-500" /> Price
+            <div className="space-y-2">
+                <label className="flex items-center text-lg font-medium text-gray-700">
+                  <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500">$</span>
+                    <span className="text-gray-500">Rs</span>
                   </div>
                   <input
-                    type="number"
+                    type="text" 
                     name="price"
                     placeholder="0.00"
                     value={formData.price}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    className="w-full pl-8 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => {
+                      
+                      let value = e.target.value.replace(/[^0-9.]/g, "");
+                      const parts = value.split(".");
+                      if (parts.length > 2) {
+                        value = parts[0] + "." + parts[1]; 
+                      }
+                      handleChange({ target: { name: "price", value } });
+                    }}
+                    className="w-full pl-8 p-4 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
               </div>
 
+
               <div className="space-y-2">
-                <label className="block text-lg font-medium text-gray-700 flex items-center">
-                  <FaUpload className="mr-2 text-blue-500" /> Product Image
+                <label className="flex items-center text-lg font-medium text-gray-700">
+                  <FaUpload className="mr-2 text-blue-500" /> Product Image <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center justify-center w-full">
                   <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">

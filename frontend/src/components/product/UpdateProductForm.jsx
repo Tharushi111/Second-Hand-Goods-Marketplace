@@ -32,11 +32,7 @@ export default function UpdateProductForm() {
           image: null,
         });
         setSelectedStock(res.data.stock._id);
-        
-        // Set existing image if available
-        if (res.data.image) {
-          setExistingImage(res.data.image);
-        }
+        if (res.data.image) setExistingImage(res.data.image);
       } catch (err) {
         console.error(err);
         toast.error("Failed to fetch product details");
@@ -63,17 +59,25 @@ export default function UpdateProductForm() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
     if (name === "image") {
-      setFormData({ ...formData, image: files[0] });
-      
-      // Create image preview
-      if (files[0]) {
+      const file = files[0];
+      if (file) {
+        if (!["image/png", "image/jpeg", "image/jpg", "image/gif"].includes(file.type)) {
+          toast.error("Only PNG, JPG, JPEG, GIF are allowed");
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error("Max image size is 5MB");
+          return;
+        }
+        setFormData({ ...formData, image: file });
+
         const reader = new FileReader();
-        reader.onload = () => {
-          setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(files[0]);
+        reader.onload = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
       } else {
+        setFormData({ ...formData, image: null });
         setImagePreview(null);
       }
     } else {
@@ -81,14 +85,16 @@ export default function UpdateProductForm() {
     }
   };
 
-  const handleStockChange = (e) => {
-    setSelectedStock(e.target.value);
-  };
+  const handleStockChange = (e) => setSelectedStock(e.target.value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedStock) return toast.error("Please select a stock item");
+    if (!formData.description.trim()) return toast.error("Description is required");
+    if (!formData.price || Number(formData.price) <= 0) return toast.error("Price must be greater than 0");
+
     setIsSubmitting(true);
-    
+
     const data = new FormData();
     data.append("stockId", selectedStock);
     data.append("description", formData.description);
@@ -109,7 +115,6 @@ export default function UpdateProductForm() {
     }
   };
 
-  // Find selected stock details
   const stockDetails = stocks.find((s) => s._id === selectedStock);
 
   if (isLoading) {
@@ -123,9 +128,7 @@ export default function UpdateProductForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex items-center justify-center">
       <Toaster position="top-center" />
-
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
-        {/* Header with back button */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <button
             onClick={() => navigate("/product")}
@@ -141,14 +144,14 @@ export default function UpdateProductForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Stock dropdown */}
             <div className="space-y-2">
-              <label className="block text-lg font-medium text-gray-700 flex items-center">
+              <label className="flex items-center text-lg font-medium text-gray-700">
                 <FaBox className="mr-2 text-blue-500" /> Select Stock Item
               </label>
               <div className="relative">
                 <select
                   value={selectedStock}
                   onChange={handleStockChange}
-                  className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black appearance-none"
                   required
                 >
                   <option value="">-- Select a stock item --</option>
@@ -159,7 +162,13 @@ export default function UpdateProductForm() {
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
                   </svg>
                 </div>
@@ -187,7 +196,7 @@ export default function UpdateProductForm() {
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="block text-lg font-medium text-gray-700 flex items-center">
+              <label className="flex items-center text-lg font-medium text-gray-700">
                 <FaAlignLeft className="mr-2 text-blue-500" /> Product Description
               </label>
               <textarea
@@ -196,7 +205,7 @@ export default function UpdateProductForm() {
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
                 required
               ></textarea>
             </div>
@@ -205,12 +214,13 @@ export default function UpdateProductForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Price */}
               <div className="space-y-2">
-                <label className="block text-lg font-medium text-gray-700 flex items-center">
-                  <FaDollarSign className="mr-2 text-blue-500" /> Price
-                </label>
+              <label className="flex items-center text-lg font-medium text-gray-700">
+                <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price
+              </label>
+
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500">$</span>
+                    <span className="text-gray-500">Rs.</span>
                   </div>
                   <input
                     type="number"
@@ -220,7 +230,7 @@ export default function UpdateProductForm() {
                     onChange={handleChange}
                     min="0"
                     step="0.01"
-                    className="w-full pl-8 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-8 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
                     required
                   />
                 </div>
@@ -228,21 +238,21 @@ export default function UpdateProductForm() {
 
               {/* Image Upload */}
               <div className="space-y-2">
-                <label className="block text-lg font-medium text-gray-700 flex items-center">
+                <label className="flex flex-col items-center justify-center text-lg font-medium text-gray-700">
                   <FaUpload className="mr-2 text-blue-500" /> Product Image
                 </label>
                 <div className="flex flex-col items-center">
                   {(existingImage || imagePreview) && (
                     <div className="mb-4">
                       <p className="text-sm text-gray-600 mb-2">Image Preview:</p>
-                      <img 
-                        src={imagePreview || `http://localhost:5001${existingImage}`} 
-                        alt="Product preview" 
+                      <img
+                        src={imagePreview || `http://localhost:5001${existingImage}`}
+                        alt="Product preview"
                         className="h-32 w-32 object-cover rounded-lg border"
                       />
                     </div>
                   )}
-                  
+
                   <div className="flex items-center justify-center w-full">
                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -277,16 +287,32 @@ export default function UpdateProductForm() {
                 type="submit"
                 disabled={isSubmitting}
                 className={`flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white transition-all ${
-                  isSubmitting 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800'
+                  isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
                 }`}
               >
                 {isSubmitting ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Updating Product...
                   </>

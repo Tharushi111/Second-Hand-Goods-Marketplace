@@ -2,8 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { FaEye, FaEdit, FaTrash, FaFilePdf, FaPlus, FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import jsPDF from "jspdf";
 import { useNavigate } from "react-router-dom";
+import logoImg from "../../assets/ReBuyLogo.png"; 
 
 export default function ProductTable() {
   const [products, setProducts] = useState([]);
@@ -45,35 +50,104 @@ export default function ProductTable() {
   };
 
   // Download PDF
-  const downloadPDF = (product) => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.setTextColor(40, 103, 178);
-    doc.text("Product Details", 105, 20, { align: "center" });
+const downloadPDF = (product) => {
+  const doc = new jsPDF();
 
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
+  // Set margins
+  const margin = 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
 
-    doc.setFillColor(245, 247, 250);
-    doc.rect(20, 30, 170, 10, 'F');
-    doc.setTextColor(40, 103, 178);
-    doc.text("Basic Information", 20, 37);
+  // Add logo on left
+  if (logoImg) {
+    doc.addImage(logoImg, "PNG", margin, 10, 30, 30);
+  }
 
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Name: ${product.stock.name}`, 20, 50);
-    doc.text(`Category: ${product.category}`, 20, 60);
-    doc.text(`Description: ${product.description}`, 20, 70);
-    doc.text(`Price: $${product.price}`, 20, 80);
-    doc.text(`Created: ${new Date(product.createdAt).toLocaleDateString()}`, 20, 90);
+  // Company info on right - aligned to right margin
+  doc.setFontSize(16);
+  doc.setTextColor(40, 103, 178);
+  doc.text("ReBuy.lk", pageWidth - margin, 15, { align: "right" });
 
-    doc.rect(15, 15, 180, 80);
+  doc.setFontSize(10);
+  doc.setTextColor(80, 80, 80);
+  doc.text("77A, Market Street", pageWidth - margin, 22, { align: "right" });
+  doc.text("Colombo, Sri Lanka", pageWidth - margin, 28, { align: "right" });
+  doc.text("Contact: +94 77 321 4567", pageWidth - margin, 34, { align: "right" });
+  doc.text("Email: rebuy@gmail.com", pageWidth - margin, 40, { align: "right" });
 
-    doc.save(`${product.stock.name}_details.pdf`);
-  };
+  // Add a decorative line under header
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, 50, pageWidth - margin, 50);
+
+  // Title
+  doc.setFontSize(20);
+  doc.setTextColor(40, 103, 178);
+  doc.text("Product Details", pageWidth / 2, 65, { align: "center" });
+
+  // Product info section with light background
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(margin, 75, pageWidth - margin * 2, 15, 3, 3, "F");
+  doc.setTextColor(40, 103, 178);
+  doc.setFontSize(12);
+  doc.text("Basic Information", margin + 5, 86);
+
+  // Product details
+  let currentY = 95;
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(11);
+
+  // Name
+  doc.setFont(undefined, "bold");
+  doc.text("Name:", margin + 5, currentY);
+  doc.setFont(undefined, "normal");
+  doc.text(String(product?.name || ""), margin + 25, currentY);
+  currentY += 8;
+
+  // Category
+  doc.setFont(undefined, "bold");
+  doc.text("Category:", margin + 5, currentY);
+  doc.setFont(undefined, "normal");
+  doc.text(String(product?.category || ""), margin + 30, currentY);
+  currentY += 8;
+
+  // Description (with text wrapping)
+  doc.setFont(undefined, "bold");
+  doc.text("Description:", margin + 5, currentY);
+  doc.setFont(undefined, "normal");
+  const descriptionText = String(product?.description || "N/A");
+  const descriptionLines = doc.splitTextToSize(descriptionText, pageWidth - margin * 2 - 10);
+  doc.text(descriptionLines, margin + 35, currentY);
+  currentY += descriptionLines.length * 6;
+
+  // Price
+  doc.setFont(undefined, "bold");
+  doc.text("Price:", margin + 5, currentY);
+  doc.setFont(undefined, "normal");
+  doc.text(`Rs. ${String(product?.price || "0")}`, margin + 25, currentY);
+  currentY += 8;
+
+  // Created date
+  doc.setFont(undefined, "bold");
+  doc.text("Created:", margin + 5, currentY);
+  doc.setFont(undefined, "normal");
+  const createdAt = product?.createdAt ? new Date(product.createdAt).toLocaleDateString() : "N/A";
+  doc.text(createdAt, margin + 30, currentY);
+  currentY += 8;
+
+  // Add footer with page number and generated date
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, pageHeight - 10);
+  doc.text("Page 1 of 1", pageWidth - margin, pageHeight - 10, { align: "right" });
+
+  // Save file
+  const fileName = (product?.name || "product").replace(/\s+/g, "_");
+  doc.save(`${fileName}_details.pdf`);
+};
 
   const filteredProducts = products.filter((p) => {
     const matchesCategory = p.category.toLowerCase().includes(searchCategory.toLowerCase());
-    const matchesDate = filterDate ? new Date(p.createdAt).toISOString().slice(0,10) === filterDate : true;
+    const matchesDate = filterDate ? new Date(p.createdAt).toISOString().slice(0, 10) === filterDate : true;
     return matchesCategory && matchesDate;
   });
 
@@ -93,13 +167,13 @@ export default function ProductTable() {
               </span>
               Products
             </h1>
-            <p className="text-gray-600 mt-2">Manage your product catalog with ease</p>
+            <p className="text-gray-600 mt-2">Manage product catalog with ease</p>
           </div>
           <button
             onClick={() => navigate("/add-product")}
             className="flex items-center bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl shadow-md hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 mt-4 md:mt-0 group"
           >
-            <FaPlus className="mr-2 transition-transform group-hover:rotate-90" /> 
+            <FaPlus className="mr-2 transition-transform group-hover:rotate-90" />
             Add New Product
           </button>
         </div>
@@ -107,32 +181,29 @@ export default function ProductTable() {
         {/* Filters Card */}
         <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <FaSearch className="text-blue-500 mr-2" /> Filter Products
+            <FaSearch className="text-black mr-2" /> Filter Products
           </h2>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaSearch className="text-gray-400" />
+                <FaSearch className="text-black" />
               </div>
               <input
                 type="text"
                 placeholder="Search by category"
                 value={searchCategory}
                 onChange={(e) => setSearchCategory(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaCalendarAlt className="text-gray-400" />
-              </div>
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+            <DatePicker
+              selected={filterDate ? new Date(filterDate) : null}
+              onChange={(date) => setFilterDate(date.toISOString().slice(0,10))}
+              placeholderText="Select a date"
+              className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
           </div>
         </div>
 
@@ -173,7 +244,7 @@ export default function ProductTable() {
                     <tr key={product._id} className="hover:bg-blue-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">{product.stock.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{product.category}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">${product.price}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">Rs.{product.price}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">{new Date(product.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                         <div className="flex justify-center space-x-2">
@@ -217,7 +288,7 @@ export default function ProductTable() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Price</h3>
-                  <p className="mt-1 text-gray-900 font-semibold">${viewProduct.price}</p>
+                  <p className="mt-1 text-gray-900 font-semibold">Rs.{viewProduct.price}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Created At</h3>

@@ -89,7 +89,11 @@ const AddStockForm = () => {
             <input
               type="text"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+  
+                const lettersOnly = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                setCategory(lettersOnly);
+              }}
               placeholder="e.g., Laptop, Mobile"
               className={`w-full px-4 py-2 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.category ? "border-red-500" : "border-gray-300"
@@ -104,11 +108,14 @@ const AddStockForm = () => {
               Quantity <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
+              type="text"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) => {
+                
+                const numbersOnly = e.target.value.replace(/[^0-9]/g, "");
+                setQuantity(numbersOnly);
+              }}
               placeholder="e.g., 20"
-              min={0}
               className={`w-full px-4 py-2 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.quantity ? "border-red-500" : "border-gray-300"
               }`}
@@ -116,17 +123,19 @@ const AddStockForm = () => {
             {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
           </div>
 
+
           {/* Reorder Level */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">
               Reorder Level <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={reorderLevel}
-              onChange={(e) => setReorderLevel(e.target.value)}
+              onChange={(e) => setReorderLevel(e.target.value.replace(/\D/g, ""))} // strips non-digits
               placeholder="e.g., 5"
-              min={0}
               className={`w-full px-4 py-2 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.reorderLevel ? "border-red-500" : "border-gray-300"
               }`}

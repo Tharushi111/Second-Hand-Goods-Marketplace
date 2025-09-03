@@ -1,66 +1,146 @@
 import React from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import AdminLogin from "./components/adminLogin.jsx";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Inventory from "./components/inventory/inventory.jsx";
-import { Toaster } from "react-hot-toast";
 import ProductTable from "./components/product/products.jsx";
 import AddProductForm from "./components/product/addProduct.jsx";
-import UpdateProductForm from "./components/product/UpdateProductForm.jsx"; // import the update form
+import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
+import ProductListing from "./components/product/productListing.jsx";
+import { Toaster } from "react-hot-toast";
+import PrivateRoute from "./components/PrivateRoute";
 
-function AppWrapper() {
-  const navigate = useNavigate();
+function App() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/admin/login";
+  const isProductListing = location.pathname === "/products";
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <Sidebar />
+      {/* Sidebar for admin pages except login */}
+      {!isLoginPage && !isProductListing && <Sidebar />}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        {/* Navbar */}
-        <Navbar />
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 h-screen">
+        {/* Navbar for admin pages except login */}
+        {!isLoginPage && !isProductListing && <Navbar />}
 
-        {/* Content Area */}
-        <main className="flex-1 p-6 overflow-auto">
+        {/* Scrollable content */}
+        <main className="flex-1 overflow-auto p-6">
           <Routes>
-            <Route path="/" element={<h2 className="text-2xl font-bold">Home Page</h2>} />
-            <Route path="/users" element={<h2 className="text-2xl font-bold">Users Page</h2>} />
-            <Route path="/orders" element={<h2 className="text-2xl font-bold">Orders Page</h2>} />
+            {/* Public Route */}
+            <Route path="/admin/login" element={<AdminLogin />} />
 
-            {/* Products table with navigation to AddProductForm or UpdateProductForm */}
+            {/* Admin Protected Routes */}
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Home Page</h2>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Users Page</h2>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Orders Page</h2>
+                </PrivateRoute>
+              }
+            />
             <Route
               path="/product"
-              element={<ProductTable navigateToaddProduct={(id) => {
-                if (id) navigate(`/product/update/${id}`);
-                else navigate("/product/add");
-              }} />}
+              element={
+                <PrivateRoute>
+                  <ProductTable />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/add-product"
+              element={
+                <PrivateRoute>
+                  <AddProductForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/update-product/:id"
+              element={
+                <PrivateRoute>
+                  <UpdateProductForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/inventory/*"
+              element={
+                <PrivateRoute>
+                  <Inventory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/suppliers"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Suppliers Page</h2>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/finance"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Finance Page</h2>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/delivery"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Delivery Page</h2>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/feedback"
+              element={
+                <PrivateRoute>
+                  <h2 className="text-2xl font-bold">Feedback Page</h2>
+                </PrivateRoute>
+              }
             />
 
-            {/* Add Product Form */}
-           <Route path="/add-product" element={<AddProductForm />} />
-
-
-            {/* Update Product Form with dynamic id */}
-           <Route path="/update-product/:id" element={<UpdateProductForm />} />
-
-            <Route path="/inventory/*" element={<Inventory />} />
-            <Route path="/suppliers" element={<h2 className="text-2xl font-bold">Suppliers Page</h2>} />
-            <Route path="/finance" element={<h2 className="text-2xl font-bold">Finance Page</h2>} />
-            <Route path="/delivery" element={<h2 className="text-2xl font-bold">Delivery Page</h2>} />
-            <Route path="/feedback" element={<h2 className="text-2xl font-bold">Feedback Page</h2>} />
+            {/* Public Product Listing Page */}
+            <Route
+              path="/productListing"
+              element={
+                <div className="flex flex-col flex-1 h-screen">
+                  <ProductListing />
+                  <Footer />
+                </div>
+              }
+            />
           </Routes>
         </main>
-
-        {/* Footer */}
-        <Footer />
       </div>
 
       {/* Toast Notifications */}
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 }
 
-export default AppWrapper;
+export default App;

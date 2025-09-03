@@ -99,20 +99,27 @@ function ReorderRequestForm({ onSubmit }) {
 
           {/* Quantity & Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+          <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Quantity <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
+                type="text" 
                 name="quantity"
                 value={form.quantity}
-                onChange={handleChange}
+                onChange={(e) => {
+                  
+                  const numbersOnly = e.target.value.replace(/[^0-9]/g, "");
+                  handleChange({ target: { name: "quantity", value: numbersOnly } });
+                }}
                 placeholder="Ex: 20"
-                className={`w-full pl-4 pr-4 py-3 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-200 ${errors.quantity ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full pl-4 pr-4 py-3 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-200 ${
+                  errors.quantity ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
             </div>
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

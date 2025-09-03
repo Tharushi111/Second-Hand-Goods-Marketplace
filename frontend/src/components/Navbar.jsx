@@ -1,17 +1,47 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
+  // Get admin data from localStorage safely
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const username = adminData.username || "Admin";
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminData");
+    navigate("/admin/login");
+  };
+
   return (
-    <header className="bg-white shadow p-4 flex justify-between items-center">
-      {/* Left side */}
-      <div className="flex items-center space-x-4">
-        <h1 className="text-xl font-semibold">Admin Dashboard</h1>
+    <header className="bg-white shadow-lg px-4 sm:px-6 py-3 flex items-center justify-between w-full border-b border-gray-100">
+      {/* Left - Title */}
+      <div className="flex items-center">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Admin Dashboard
+        </h1>
       </div>
 
-      {/* Right side */}
-      <div className="flex items-center space-x-4">
-        <span className="font-medium">User: Admin</span>
-        <button className="btn btn-sm btn-ghost">Logout</button>
+      {/* Right - Profile & Logout */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-md">
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+          </div>
+          <span className="font-medium text-gray-700">{username}</span>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          aria-label="Logout"
+          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow hover:shadow-md flex items-center"
+        >
+          Logout
+        </button>
       </div>
     </header>
   );

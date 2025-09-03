@@ -13,12 +13,14 @@ import {
   faCalendarAlt,
   faFilePdf,
   faSearch,
-  faFilter
+  faFilter,
 } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const ReorderRequests = () => {
   const [reorders, setReorders] = useState([]);
@@ -28,8 +30,8 @@ const ReorderRequests = () => {
 
   // search & filter state
   const [searchTerm, setSearchTerm] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(null); // now using Date object
+  const [endDate, setEndDate] = useState(null);
 
   const navigate = useNavigate();
 
@@ -56,8 +58,8 @@ const ReorderRequests = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const created = new Date(order.createdAt);
-    const matchStart = startDate ? created >= new Date(startDate) : true;
-    const matchEnd = endDate ? created <= new Date(endDate) : true;
+    const matchStart = startDate ? created >= startDate : true;
+    const matchEnd = endDate ? created <= endDate : true;
     return matchSearch && matchStart && matchEnd;
   });
 
@@ -91,40 +93,120 @@ const ReorderRequests = () => {
     setSelectedOrder(null);
   };
 
-  // PDF generator
+  // PDF generator for Reorder Requests
   const generatePDF = () => {
     const doc = new jsPDF();
-  
-    doc.addImage("/ReBuyLogo.png", "PNG", 14, 10, 20, 20);
-    doc.setFontSize(16);
-    doc.text("ReBuy.lk", 40, 20);
-    doc.setFontSize(11);
-    doc.text("123 Main Street, Colombo, Sri Lanka", 40, 28);
-    doc.text("Contact: +94 77 123 4567", 40, 34);
-    doc.text("Email: info@rebuy.lk", 40, 40);
-  
-    doc.line(10, 45, 200, 45);
-    doc.setFontSize(14);
-    doc.text("Reorder Requests Report", 14, 55);
-  
-    const tableData = reorders.map(r => [
-      r._id,
+    const margin = 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Add logo on the left
+    doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 25, 25);
+
+    // Company details aligned to the right
+    doc.setFontSize(16).setTextColor(40, 103, 178);
+    doc.text("ReBuy.lk", pageWidth - margin, 20, { align: "right" });
+
+    doc.setFontSize(10).setTextColor(100, 100, 100);
+    doc.text(
+      "77A, Market Street, Colombo, Sri Lanka",
+      pageWidth - margin,
+      27,
+      { align: "right" }
+    );
+    doc.text("Contact: +94 77 321 4567", pageWidth - margin, 34, {
+      align: "right",
+    });
+    doc.text("Email: rebuy@gmail.com", pageWidth - margin, 41, {
+      align: "right",
+    });
+
+    // Add a decorative line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 50, pageWidth - margin, 50);
+
+    // Report title with background
+    doc.setFillColor(245, 247, 250);
+    doc.rect(margin, 55, pageWidth - margin * 2, 10, "F");
+    doc.setFontSize(14).setTextColor(40, 103, 178);
+    doc.text("Reorder Requests Report", pageWidth / 2, 62, {
+      align: "center",
+    });
+
+    // Prepare table data
+    const tableData = reorders.map((r) => [
+      r._id.substring(0, 8) + "...",
       r.title,
       r.quantity,
       r.category,
-      r.priority,
-      new Date(r.createdAt).toLocaleDateString()
+      r.priority.charAt(0).toUpperCase() + r.priority.slice(1),
+      new Date(r.createdAt).toLocaleDateString(),
     ]);
-  
+
+    // Create the table with improved styling
     autoTable(doc, {
       head: [["ID", "Title", "Quantity", "Category", "Priority", "Created At"]],
       body: tableData,
-      startY: 60,
+      startY: 70,
+      theme: "grid",
+      headStyles: {
+        fillColor: [40, 103, 178],
+        textColor: 255,
+        fontStyle: "bold",
+        fontSize: 10,
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [220, 220, 220],
+        textColor: [50, 50, 50],
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250],
+      },
+      margin: { left: margin, right: margin },
+      columnStyles: {
+        0: { cellWidth: 25 }, // ID column
+        1: { cellWidth: "auto" }, // Title column
+        2: { cellWidth: 20 }, // Quantity column
+        3: { cellWidth: 25 }, // Category column
+        4: { cellWidth: 25 }, // Priority column
+        5: { cellWidth: 25 }, // Date column
+      },
     });
-  
-    doc.save("reorder_requests.pdf");
+
+    // Get the final Y position after the table
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    // Add summary information
+    const highPriorityCount = reorders.filter((r) => r.priority === "high").length;
+    const mediumPriorityCount = reorders.filter((r) => r.priority === "medium").length;
+    const lowPriorityCount = reorders.filter((r) => r.priority === "low").length;
+
+    doc.setFontSize(10).setTextColor(40, 103, 178);
+    doc.text("Summary", margin, finalY);
+
+    doc.setFontSize(9).setTextColor(80, 80, 80);
+    doc.text(`Total Requests: ${reorders.length}`, margin, finalY + 7);
+    doc.text(`High Priority: ${highPriorityCount}`, margin + 40, finalY + 7);
+    doc.text(`Medium Priority: ${mediumPriorityCount}`, margin + 80, finalY + 7);
+    doc.text(`Low Priority: ${lowPriorityCount}`, margin + 120, finalY + 7);
+
+    // Footer with generation date and page info
+    doc.setFontSize(8).setTextColor(150, 150, 150);
+    doc.text(
+      `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+      margin,
+      pageHeight - 10
+    );
+    doc.text("Page 1 of 1", pageWidth - margin, pageHeight - 10, {
+      align: "right",
+    });
+
+    // Save the PDF
+    doc.save("Reorder_Requests_Report.pdf");
   };
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -152,7 +234,6 @@ const ReorderRequests = () => {
       {/* Filters + PDF */}
       <div className="mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="flex flex-col md:flex-row gap-6 items-end">
-          
           {/* Search */}
           <div className="flex-1 w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -168,29 +249,53 @@ const ReorderRequests = () => {
             />
           </div>
 
-          {/* Date filter */}
+          {/* Date filter with react-datepicker */}
           <div className="flex-1 w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <FontAwesomeIcon icon={faFilter} className="mr-2 text-gray-600" />
               Filter by Date Range
             </label>
             <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="date-input flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <span className="self-center text-gray-500 hidden sm:block">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="date-input flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+              {/* Start Date */}
+              <div className="relative flex-1">
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  placeholderText="Start Date"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <FontAwesomeIcon
+                  icon={faCalendarAlt}
+                  className="absolute right-3 top-3 text-gray-500"
+                />
+              </div>
+
+              <span className="self-center text-gray-500 hidden sm:block">
+                to
+              </span>
+
+              {/* End Date */}
+              <div className="relative flex-1">
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  placeholderText="End Date"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <FontAwesomeIcon
+                  icon={faCalendarAlt}
+                  className="absolute right-3 top-3 text-gray-500"
+                />
+              </div>
             </div>
           </div>
-
 
           {/* PDF button */}
           <button
@@ -202,7 +307,6 @@ const ReorderRequests = () => {
           </button>
         </div>
       </div>
-
       {/* Results count */}
       <div className="mb-4 flex justify-between items-center">
         <p className="text-gray-600">
