@@ -8,14 +8,15 @@ import Inventory from "./components/inventory/inventory.jsx";
 import ProductTable from "./components/product/products.jsx";
 import AddProductForm from "./components/product/addProduct.jsx";
 import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
-import ProductListing from "./components/product/productListing.jsx";
+import ProductListing from "./components/User/productListing.jsx";
+import HomePage from "./components/User/Home.jsx";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   const location = useLocation();
 
   // Paths that should NOT display admin layout
-  const noAdminLayoutRoutes = ["/admin/login", "/productListing"];
+  const noAdminLayoutRoutes = ["/admin/login", "/productListing","/home"];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
   return (
@@ -34,13 +35,15 @@ function App() {
             {/* Public Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/productListing" element={<ProductListing />} />
+            <Route path="/home" element={<HomePage />} />
+
 
             {/* Admin Protected Routes */}
             <Route
               path="/"
               element={
                 <PrivateRoute>
-                  <h2 className="text-2xl font-bold">Home Page</h2>
+                  <h2 className="text-2xl font-bold">Admin Home Page</h2>
                 </PrivateRoute>
               }
             />
