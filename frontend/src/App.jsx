@@ -16,7 +16,7 @@ function App() {
   const location = useLocation();
 
   // Paths that should NOT display admin layout
-  const noAdminLayoutRoutes = ["/admin/login", "/productListing","/home"];
+  const noAdminLayoutRoutes = ["/admin/login", "/productListing","/HomePage"];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
   return (
@@ -35,7 +35,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/productListing" element={<ProductListing />} />
-            <Route path="/home" element={<HomePage />} />
+            <Route path="/HomePage" element={<HomePage />} />
 
 
             {/* Admin Protected Routes */}
