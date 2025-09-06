@@ -138,7 +138,7 @@ const ProductListing = () => {
 
           {/* Navigation Links */}
           <nav className="hidden md:flex space-x-8">
-            <Link to="/home" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
+            <Link to="/HomePage" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               Home
             </Link>
             <Link to="/productListing" className="text-white text-lg font-medium transition-colors">
