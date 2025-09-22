@@ -16,7 +16,7 @@
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.23.12",
+    "framer-motion": "^12.23.18",
     "jspdf": "^3.0.2",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.542.0",

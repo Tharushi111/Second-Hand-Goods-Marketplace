@@ -123,10 +123,10 @@ const HomePage = () => {
             <Link to="/productListing" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               Products
             </Link>
-            <Link to="/contact" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
+            <Link to="/ContactUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               Contact Us
             </Link>
-            <Link to="/about" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
+            <Link to="/AboutUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               About Us
             </Link>
           </nav>
@@ -160,10 +160,10 @@ const HomePage = () => {
               <Link to="/productListing" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
                 Products
               </Link>
-              <Link to="/contact" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
+              <Link to="/ContactUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
                 Contact Us
               </Link>
-              <Link to="/about" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
+              <Link to="/AboutUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
                 About Us
               </Link>
               <div className="pt-4 border-t border-blue-700">
@@ -396,8 +396,8 @@ const HomePage = () => {
             <ul className="space-y-2">
               <li><Link to="/" className="text-blue-300 hover:text-white transition-colors">Home</Link></li>
               <li><Link to="/productListing" className="text-blue-300 hover:text-white transition-colors">Products</Link></li>
-              <li><Link to="/contact" className="text-blue-300 hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link to="/about" className="text-blue-300 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/ContactUs" className="text-blue-300 hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link to="/AboutUs" className="text-blue-300 hover:text-white transition-colors">About Us</Link></li>
             </ul>
           </div>
 
