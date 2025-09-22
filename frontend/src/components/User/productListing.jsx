@@ -22,7 +22,6 @@ import {
 import { toast, Toaster } from "react-hot-toast";
 import { Link } from "react-router-dom";
 
-// Import your logo image
 import logoImg from "../../assets/ReBuy.png";
 
 const ProductListing = () => {
