@@ -2,354 +2,333 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import toast from "react-hot-toast";
+import axios from "axios";
+import logo from "../../assets/ReBuyLogo.png";
 
 export default function StockReport() {
   const [stocks, setStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [reportDate] = useState(new Date());
 
+  // Fetch stock data from backend
   useEffect(() => {
-    setIsLoading(true);
-    fetch("http://localhost:5001/api/stock")
-      .then((res) => res.json())
-      .then((data) => {
-        setStocks(data);
+    const fetchStocks = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem("adminToken");
+        const res = await axios.get("http://localhost:5001/api/admin/auth/stocks", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setStocks(res.data);
+      } catch (err) {
+        console.error("Error fetching stocks:", err);
+        toast.error("Failed to load stock data", { position: "top-center" });
+      } finally {
         setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching stock data:", err);
-        setIsLoading(false);
-      });
+      }
+    };
+    fetchStocks();
   }, []);
 
   // Summary calculations
   const totalProducts = stocks.length;
-  const inStock = stocks.filter((s) => s.quantity > 10).length;
-  const lowStock = stocks.filter((s) => s.quantity > 0 && s.quantity <= 10).length;
+  const totalValue = stocks.reduce((sum, s) => sum + s.quantity * s.unitPrice, 0);
+  const inStock = stocks.filter((s) => s.quantity > s.reorderLevel).length;
+  const lowStock = stocks.filter((s) => s.quantity > 0 && s.quantity <= s.reorderLevel).length;
   const outOfStock = stocks.filter((s) => s.quantity === 0).length;
 
-  const categoryTotals = stocks.reduce((acc, s) => {
-    const cat = s.category || "Uncategorized";
-    acc[cat] = (acc[cat] || 0) + s.quantity;
+  const categorySummary = stocks.reduce((acc, s) => {
+    const cat = s.category;
+    if (!acc[cat]) acc[cat] = { total: 0, value: 0, items: 0 };
+    acc[cat].total += s.quantity;
+    acc[cat].value += s.quantity * s.unitPrice;
+    acc[cat].items += 1;
     return acc;
   }, {});
-// Export PDF
-const handleDownloadPDF = () => {
-  const doc = new jsPDF();
-  const margin = 15;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  let currentY = 40;
 
-  // Add logo on the left
-  try {
-    doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 30, 30);
-  } catch (e) {
-    console.log("Logo not found, proceeding without it");
-  }
+  const getStockStatus = (quantity, reorderLevel) => {
+    if (quantity === 0) return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" };
+    if (quantity <= reorderLevel) return { text: "Low Stock", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" };
+    return { text: "In Stock", color: "text-green-600", bg: "bg-green-50", border: "border-green-200" };
+  };
 
-  // Company details on the right
-  doc.setFontSize(16).setTextColor(40, 103, 178);
-  doc.text("ReBuy.lk", pageWidth - margin, 20, { align: "right" });
-  
-  doc.setFontSize(10).setTextColor(100, 100, 100);
-  doc.text("123 Main Street, Colombo, Sri Lanka", pageWidth - margin, 27, { align: "right" });
-  doc.text("Contact: +94 77 123 4567", pageWidth - margin, 34, { align: "right" });
-  doc.text("Email: info@rebuy.lk", pageWidth - margin, 41, { align: "right" });
+  // PDF download with company logo and details
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
 
-  // Add a decorative line separator
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, 50, pageWidth - margin, 50);
+    // Blue color palette
+    const blueDark = [30, 64, 175];    // Dark blue for headers
+    const blueMedium = [59, 130, 246]; // Medium blue for accents
+    const blueLight = [219, 234, 254]; // Light blue for backgrounds
+    const blueText = [37, 99, 235];    // Blue for text
 
-  // Report title
-  doc.setFontSize(18).setTextColor(40, 40, 40);
-  doc.setFont(undefined, "bold");
-  doc.text("Stock Summary Report", pageWidth / 2, 65, { align: "center" });
-  
-  doc.setFontSize(12).setFont(undefined, "normal");
-  doc.setTextColor(100, 100, 100);
-  doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 75, { align: "center" });
+    // Company details
+    const companyDetails = {
+      name: "ReBuy.lk",
+      address: "77A, Market Street, Colombo, Sri Lanka",
+      contact: "+94 77 321 4567",
+      email: "rebuy@gmail.com"
+    };
 
-  // First table - Stock Metrics
-  autoTable(doc, {
-    startY: 85,
-    head: [["Metric", "Value"]],
-    body: [
-      ["Total Products", totalProducts],
-      ["In Stock (>10)", inStock],
-      ["Low Stock (1-10)", lowStock],
-      ["Out of Stock", outOfStock],
-    ],
-    theme: "grid",
-    headStyles: {
-      fillColor: [40, 103, 178],
-      textColor: 255,
-      fontStyle: 'bold'
-    },
-    styles: {
-      fontSize: 11,
-      cellPadding: 4,
-      lineColor: [220, 220, 220]
-    },
-    alternateRowStyles: {
-      fillColor: [245, 247, 250]
-    },
-    margin: { left: margin, right: margin },
-    didDrawPage: function(data) {
-      // Add a title above the table
-      doc.setFontSize(14).setTextColor(40, 103, 178);
-      doc.text("Stock Overview", margin, 80);
-    }
-  });
-
-  // Second table - Category Totals
-  autoTable(doc, {
-    startY: doc.lastAutoTable.finalY + 20,
-    head: [["Category", "Total Units"]],
-    body: Object.entries(categoryTotals).map(([cat, qty]) => [cat, qty]),
-    theme: "grid",
-    headStyles: {
-      fillColor: [40, 103, 178],
-      textColor: 255,
-      fontStyle: 'bold'
-    },
-    styles: {
-      fontSize: 11,
-      cellPadding: 4,
-      lineColor: [220, 220, 220]
-    },
-    alternateRowStyles: {
-      fillColor: [245, 247, 250]
-    },
-    margin: { left: margin, right: margin },
-    didDrawPage: function(data) {
-      // Add a title above the table
-      doc.setFontSize(14).setTextColor(40, 103, 178);
-      doc.text("Inventory by Category", margin, doc.lastAutoTable.finalY + 10);
-    }
-  });
-
-  // Add summary statistics at the bottom with adequate spacing
-  const finalY = doc.lastAutoTable.finalY + 30; // Increased spacing here
-  
-  if (finalY < pageHeight - 80) { // Increased minimum space requirement
-    doc.setFontSize(12).setTextColor(40, 103, 178);
-    doc.text("Quick Summary", margin, finalY);
+    // Add logo image (replace canvas)
+    doc.addImage(logo, 'PNG', margin, 10, 25, 25);
     
-    doc.setFontSize(10).setTextColor(80, 80, 80);
-    const inStockPercent = ((inStock / totalProducts) * 100).toFixed(1);
-    const lowStockPercent = ((lowStock / totalProducts) * 100).toFixed(1);
-    const outOfStockPercent = ((outOfStock / totalProducts) * 100).toFixed(1);
+    // Company details
+    doc.setFontSize(16);
+    doc.setTextColor(...blueDark);
+    doc.setFont(undefined, 'bold');
+    doc.text(companyDetails.name, margin + 30, 18);
     
-    doc.text(`In Stock: ${inStock} (${inStockPercent}%)`, margin + 5, finalY + 15);
-    doc.text(`Low Stock: ${lowStock} (${lowStockPercent}%)`, margin + 5, finalY + 30);
-    doc.text(`Out of Stock: ${outOfStock} (${outOfStockPercent}%)`, margin + 5, finalY + 45);
-    
-    // Add decorative line above footer with more spacing
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont(undefined, 'normal');
+    doc.text(companyDetails.address, margin + 30, 25);
+    doc.text(`Contact: ${companyDetails.contact}`, margin + 30, 30);
+    doc.text(`Email: ${companyDetails.email}`, margin + 30, 35);
+
+    // Report title and date
+    doc.setFontSize(14);
+    doc.setTextColor(...blueDark);
+    doc.setFont(undefined, 'bold');
+    doc.text("STOCK INVENTORY REPORT", pageWidth - margin, 25, { align: "right" });
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Generated: ${reportDate.toLocaleDateString()} ${reportDate.toLocaleTimeString()}`, pageWidth - margin, 30, { align: "right" });
+
+    // Separator line
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, finalY + 60, pageWidth - margin, finalY + 60);
-    
-    // Footer with increased spacing from content
-    doc.setFontSize(8).setTextColor(150, 150, 150);
-    doc.text(`Report generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 
-             margin, finalY + 75);
-    doc.text("Page 1 of 1", pageWidth - margin, finalY + 75, { align: "right" });
-  } else {
-    // If there's not enough space, add a new page for the summary and footer
-    doc.addPage();
-    
-    // Summary on new page
-    doc.setFontSize(12).setTextColor(40, 103, 178);
-    doc.text("Quick Summary", margin, 40);
-    
-    doc.setFontSize(10).setTextColor(80, 80, 80);
-    const inStockPercent = ((inStock / totalProducts) * 100).toFixed(1);
-    const lowStockPercent = ((lowStock / totalProducts) * 100).toFixed(1);
-    const outOfStockPercent = ((outOfStock / totalProducts) * 100).toFixed(1);
-    
-    doc.text(`In Stock: ${inStock} (${inStockPercent}%)`, margin + 5, 55);
-    doc.text(`Low Stock: ${lowStock} (${lowStockPercent}%)`, margin + 5, 70);
-    doc.text(`Out of Stock: ${outOfStock} (${outOfStockPercent}%)`, margin + 5, 85);
-    
-    // Add decorative line above footer
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, 100, pageWidth - margin, 100);
-    
-    // Footer with proper spacing
-    doc.setFontSize(8).setTextColor(150, 150, 150);
-    doc.text(`Report generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 
-             margin, 115);
-    doc.text("Page 2 of 2", pageWidth - margin, 115, { align: "right" });
-  }
+    doc.line(margin, 40, pageWidth - margin, 40);
 
-  doc.save("stock_summary_report.pdf");
-};
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+    // Executive summary with blue accents
+    doc.setFontSize(12);
+    doc.setTextColor(...blueDark);
+    doc.setFont(undefined, 'bold');
+    doc.text("EXECUTIVE SUMMARY", margin, 55);
+    doc.setFontSize(9);
+    doc.setTextColor(...blueText);
+    doc.setFont(undefined, 'normal');
+    
+    const summaryData = [
+      [`Total Products: ${totalProducts}`, `Total Inventory Value: Rs.${totalValue.toLocaleString()}`],
+      [`Items In Stock: ${inStock}`, `Low Stock Items: ${lowStock}`],
+      [`Out of Stock: ${outOfStock}`, `Report Date: ${reportDate.toLocaleDateString()}`],
+    ];
+    
+    let yPos = 65;
+    summaryData.forEach((row) => {
+      doc.text(row[0], margin, yPos);
+      doc.text(row[1], pageWidth / 2, yPos);
+      yPos += 6;
+    });
+
+    // Category summary table with blue theme
+    autoTable(doc, {
+      startY: yPos + 10,
+      head: [["Category", "Items", "Total Quantity", "Total Value"]],
+      body: Object.entries(categorySummary).map(([category, data]) => [
+        category,
+        data.items.toString(),
+        data.total.toString(),
+        `Rs.${data.value.toLocaleString()}`,
+      ]),
+      styles: { 
+        fontSize: 8,
+        textColor: blueText,
+        cellPadding: 2,
+      },
+      headStyles: { 
+        fillColor: blueDark,
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9,
+      },
+      alternateRowStyles: {
+        fillColor: blueLight,
+      },
+      margin: { left: margin, right: margin },
+      theme: 'grid',
+    });
+
+    // Detailed stock table with blue theme
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 10,
+      head: [["Name", "Category", "Quantity", "Reorder Level", "Status", "Unit Price", "Total Value"]],
+      body: stocks.map((s) => [
+        s.name.length > 20 ? s.name.substring(0, 20) + '...' : s.name,
+        s.category,
+        s.quantity.toString(),
+        s.reorderLevel.toString(),
+        s.quantity === 0 ? "Out of Stock" : s.quantity <= s.reorderLevel ? "Low Stock" : "In Stock",
+        `Rs.${s.unitPrice}`,
+        `Rs.${(s.quantity * s.unitPrice).toLocaleString()}`,
+      ]),
+      styles: { 
+        fontSize: 7,
+        textColor: blueText,
+        cellPadding: 2,
+      },
+      headStyles: { 
+        fillColor: blueDark,
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 8,
+      },
+      alternateRowStyles: {
+        fillColor: blueLight,
+      },
+      margin: { left: margin, right: margin },
+      theme: 'grid',
+      pageBreak: 'auto',
+    });
+
+    // Add footer with page numbers
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+      doc.text(
+        `Confidential - ${companyDetails.name}`,
+        pageWidth - margin,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'right' }
+      );
     }
+
+    doc.save(`stock_report_${companyDetails.name}_${reportDate.toISOString().split("T")[0]}.pdf`);
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
-  };
-
-  const cardHover = {
-    scale: 1.02,
-    transition: { duration: 0.2 }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-      {/* Header */}
-      <motion.div
-        className="text-center mb-10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-4xl font-bold text-slate-800 mb-3">
-          Stock Summary Dashboard
-        </h1>
-        <p className="text-slate-600 text-lg">Comprehensive overview of inventory status</p>
-      </motion.div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-      ) : (
-        <>
-          {/* Summary Cards */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div
-              variants={itemVariants}
-              whileHover={cardHover}
-              className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-600">Total Products</h2>
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-indigo-600">{totalProducts}</p>
-              <div className="mt-2 h-1 w-16 bg-indigo-200 rounded-full"></div>
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              whileHover={cardHover}
-              className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-600">In Stock</h2>
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-green-600">{inStock}</p>
-              <div className="mt-2 h-1 w-16 bg-green-200 rounded-full"></div>
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              whileHover={cardHover}
-              className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-600">Low Stock</h2>
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-amber-600">{lowStock}</p>
-              <div className="mt-2 h-1 w-16 bg-amber-200 rounded-full"></div>
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              whileHover={cardHover}
-              className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-600">Out of Stock</h2>
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-red-600">{outOfStock}</p>
-              <div className="mt-2 h-1 w-16 bg-red-200 rounded-full"></div>
-            </motion.div>
-          </motion.div>
-
-          {/* Category Totals */}
-          <motion.div
-            className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-10"
-            initial="hidden"
-            animate="visible"
-            variants={itemVariants}
-          >
-            <h2 className="text-xl font-semibold text-slate-800 mb-6 pb-3 border-b border-slate-100 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              Stock by Category
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(categoryTotals).map(([cat, qty], i) => (
-                <motion.div
-                  key={i}
-                  className="flex justify-between items-center p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors duration-200"
-                  whileHover={{ x: 5 }}
-                >
-                  <span className="font-medium text-slate-700">{cat}</span>
-                  <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
-                    {qty} units
-                  </span>
-                </motion.div>
-              ))}
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        {/* Executive Summary with blue theme */}
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Executive Summary</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700 font-medium">Total Products</p>
+              <p className="text-2xl font-bold text-blue-900">{totalProducts}</p>
             </div>
-          </motion.div>
+            <div className="bg-blue-100 p-4 rounded-lg border border-blue-300">
+              <p className="text-sm text-blue-800 font-medium">Total Value</p>
+              <p className="text-2xl font-bold text-blue-900">Rs.{totalValue.toLocaleString()}</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700 font-medium">Low Stock Items</p>
+              <p className="text-2xl font-bold text-blue-900">{lowStock}</p>
+            </div>
+            <div className="bg-blue-100 p-4 rounded-lg border border-blue-300">
+              <p className="text-sm text-blue-800 font-medium">Out of Stock</p>
+              <p className="text-2xl font-bold text-blue-900">{outOfStock}</p>
+            </div>
+          </div>
+        </div>
 
-          {/* Export Button */}
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <motion.button
-              onClick={handleDownloadPDF}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center mx-auto"
-              whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)" }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download PDF Report
-            </motion.button>
-          </motion.div>
-        </>
-      )}
+        {/* Category Summary */}
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Category Summary</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Category</th>
+                  <th className="px-4 py-2 text-center font-medium text-gray-700">Items</th>
+                  <th className="px-4 py-2 text-center font-medium text-gray-700">Total Quantity</th>
+                  <th className="px-4 py-2 text-right font-medium text-gray-700">Total Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(categorySummary).map(([cat, data], i) => (
+                  <tr key={cat} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-4 py-3 font-medium text-gray-900">{cat}</td>
+                    <td className="px-4 py-3 text-center text-gray-700">{data.items}</td>
+                    <td className="px-4 py-3 text-center text-gray-700">{data.total}</td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900">Rs.{data.value.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Stock Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <h2 className="text-lg font-semibold text-gray-800">Detailed Stock Listing</h2>
+          <span className="text-sm text-gray-600">{stocks.length} items</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-gray-700">Product Name</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-700">Category</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700">Quantity</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700">Reorder Level</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700">Status</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700">Unit Price</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700">Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stocks.map((stock, i) => {
+                const status = getStockStatus(stock.quantity, stock.reorderLevel);
+                return (
+                  <tr key={stock._id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-4 py-3 font-medium text-gray-900">{stock.name}</td>
+                    <td className="px-4 py-3 text-gray-700">{stock.category}</td>
+                    <td className="px-4 py-3 text-center text-gray-900">{stock.quantity}</td>
+                    <td className="px-4 py-3 text-center text-gray-900">{stock.reorderLevel}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.bg} ${status.color} ${status.border}`}>
+                        {status.text}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-900">Rs.{stock.unitPrice}</td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900">
+                      Rs.{(stock.quantity * stock.unitPrice).toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Download PDF */}
+      <div className="flex justify-center">
+        <motion.button
+          onClick={handleDownloadPDF}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors shadow-lg"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Download PDF Report</span>
+        </motion.button>
+      </div>
     </div>
   );
 }
