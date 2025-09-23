@@ -11,7 +11,7 @@ import {
   faDownload,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoImg from "../../assets/ReBuyLogo.png";
@@ -25,7 +25,7 @@ const StockProducts = () => {
   const [selectedStock, setSelectedStock] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [startDate, setStartDate] = useState(null); // use Date object
+  const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const navigate = useNavigate();
 
@@ -64,19 +64,35 @@ const StockProducts = () => {
   };
 
   const handleDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        await axios.delete(`http://localhost:5001/api/stock/${id}`);
-        setStocks((prev) => prev.filter((s) => s._id !== id));
-        toast.success(`"${name}" deleted successfully`, {
-          position: "top-center",
-        });
-      } catch (err) {
-        console.error(err);
-        toast.error(`Failed to delete "${name}"`, { position: "top-center" });
-      }
+    const token = localStorage.getItem("adminToken");
+  
+    if (!token) {
+      toast.error("Unauthorized: Please log in again", { position: "top-center" });
+      navigate("/admin/login");
+      return;
+    }
+  
+    const confirmDelete = window.confirm(`Are you sure you want to delete "${name}"?`);
+    if (!confirmDelete) return;
+  
+    try {
+      console.log("Deleting stock:", id, name); // Debug
+      await axios.delete(`http://localhost:5001/api/admin/auth/stocks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      setStocks((prev) => prev.filter((s) => s._id !== id));
+  
+      console.log("Stock deleted, showing toast"); // Debug
+      toast.success(`"${name}" deleted successfully`, { position: "top-center" });
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      toast.error(err.response?.data?.message || `Failed to delete "${name}"`, {
+        position: "top-center",
+      });
     }
   };
+  
 
   // Download single stock as PDF
   const handlePdfDownloadRow = (stock) => {
@@ -121,8 +137,11 @@ const StockProducts = () => {
       body: [
         ["Name", String(stock?.name || "N/A")],
         ["Category", String(stock?.category || "N/A")],
+        ["Supplier", String(stock?.supplier?.username || "N/A")],
+        ["Unit Price", `Rs. ${Number(stock?.unitPrice || 0).toFixed(2)}`],
         ["Quantity", String(stock?.quantity ?? "0")],
         ["Reorder Level", String(stock?.reorderLevel ?? "0")],
+        ["Total Price", `Rs. ${(stock?.unitPrice * stock?.quantity).toFixed(2)}`],
         [
           "Status",
           stock?.quantity === 0
@@ -207,8 +226,11 @@ const StockProducts = () => {
     const tableData = filteredStocks.map((stock) => [
       String(stock?.name || "N/A"),
       String(stock?.category || "N/A"),
+      String(stock?.supplier?.username || "N/A"),
+      `Rs. ${Number(stock?.unitPrice || 0).toFixed(2)}`,
       String(stock?.quantity ?? "0"),
       String(stock?.reorderLevel ?? "0"),
+      `Rs. ${(stock?.unitPrice * stock?.quantity).toFixed(2)}`,
       stock?.quantity === 0
         ? "Out of Stock"
         : stock?.quantity <= (stock?.reorderLevel ?? 0)
@@ -221,7 +243,19 @@ const StockProducts = () => {
 
     autoTable(doc, {
       startY: 70,
-      head: [["Name", "Category", "Qty", "Reorder Level", "Status", "Date"]],
+      head: [
+        [
+          "Name",
+          "Category",
+          "Supplier",
+          "Unit Price",
+          "Qty",
+          "Reorder Level",
+          "Total Price",
+          "Status",
+          "Date",
+        ],
+      ],
       body: tableData,
       theme: "grid",
       headStyles: {
@@ -289,7 +323,6 @@ const StockProducts = () => {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-
             {/* Start Date */}
             <div className="relative w-full sm:w-auto">
               <DatePicker
@@ -303,7 +336,6 @@ const StockProducts = () => {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 text-sm pointer-events-none"
               />
             </div>
-
             {/* End Date */}
             <div className="relative w-full sm:w-auto">
               <DatePicker
@@ -318,7 +350,6 @@ const StockProducts = () => {
               />
             </div>
           </div>
-
           <button
             onClick={handlePdfDownloadTable}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
@@ -327,48 +358,55 @@ const StockProducts = () => {
           </button>
         </div>
 
-        {/* Table for desktop */}
+        {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto bg-white rounded-xl shadow-lg">
           <table className="min-w-full table-auto">
             <thead>
               <tr className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-                <th className="px-4 sm:px-6 py-3 text-left font-semibold">Name</th>
-                <th className="px-4 sm:px-6 py-3 text-left font-semibold">Category</th>
-                <th className="px-4 sm:px-6 py-3 text-left font-semibold">Quantity</th>
-                <th className="px-4 sm:px-6 py-3 text-left font-semibold">Reorder Level</th>
-                <th className="px-4 sm:px-6 py-3 text-left font-semibold">Status</th>
-                <th className="px-4 sm:px-6 py-3 text-left font-semibold">Date</th>
-                <th className="px-4 sm:px-6 py-3 text-center font-semibold">Actions</th>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">Category</th>
+                <th className="px-4 py-3 text-left">Supplier</th>
+                <th className="px-4 py-3 text-left">Unit Price</th>
+                <th className="px-4 py-3 text-left">Quantity</th>
+                <th className="px-4 py-3 text-left">Reorder Level</th>
+                <th className="px-4 py-3 text-left">Total Price</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">Date</th>
+                <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredStocks.map((stock) => {
-                let statusText = "In Stock";
-                let statusClass = "bg-green-100 text-green-800";
-                if (stock.quantity === 0) {
-                  statusText = "Out of Stock";
-                  statusClass = "bg-red-100 text-red-800";
-                } else if (stock.quantity <= stock.reorderLevel) {
-                  statusText = "Low Stock";
-                  statusClass = "bg-yellow-100 text-yellow-800";
-                }
+                const status =
+                  stock.quantity === 0
+                    ? { text: "Out of Stock", class: "bg-red-100 text-red-800" }
+                    : stock.quantity <= stock.reorderLevel
+                    ? { text: "Low Stock", class: "bg-yellow-100 text-yellow-800" }
+                    : { text: "In Stock", class: "bg-green-100 text-green-800" };
 
                 return (
-                  <tr key={stock._id} className="hover:bg-blue-50 transition-colors">
-                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-900">{stock.name}</td>
-                    <td className="px-4 sm:px-6 py-3 text-gray-600">{stock.category}</td>
-                    <td className="px-4 sm:px-6 py-3 text-gray-600">{stock.quantity}</td>
-                    <td className="px-4 sm:px-6 py-3 text-gray-600">{stock.reorderLevel}</td>
-                    <td className="px-4 sm:px-6 py-3">
+                  <tr key={stock._id} className="hover:bg-blue-50">
+                    <td className="px-4 py-3 font-medium">{stock.name}</td>
+                    <td className="px-4 py-3">{stock.category}</td>
+                    <td className="px-4 py-3">{stock.supplier?.username || "N/A"}</td>
+                    <td className="px-4 py-3">Rs. {Number(stock.unitPrice).toFixed(2)}</td>
+                    <td className="px-4 py-3">{stock.quantity}</td>
+                    <td className="px-4 py-3">{stock.reorderLevel}</td>
+                    <td className="px-4 py-3">
+                      Rs. {(stock.unitPrice * stock.quantity).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass} whitespace-nowrap`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${status.class}`}
                       >
-                        {statusText}
+                        {status.text}
                       </span>
                     </td>
-                    <td className="px-4 sm:px-6 py-3">{new Date(stock.createdAt).toLocaleDateString()}</td>
-                    <td className="px-4 sm:px-6 py-3">
-                      <div className="flex justify-center space-x-2 sm:space-x-3">
+                    <td className="px-4 py-3">
+                      {new Date(stock.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center gap-2">
                         <button
                           onClick={() => handleView(stock)}
                           className="text-blue-500 hover:text-blue-700 p-2 rounded-full hover:bg-blue-100"
@@ -383,7 +421,7 @@ const StockProducts = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(stock._id, stock.name)}
-                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                          className="text-red-500 hover:text-red-700 p-2"
                         >
                           <FontAwesomeIcon icon={faTrash} />
                         </button>
@@ -402,71 +440,66 @@ const StockProducts = () => {
           </table>
         </div>
 
-        {/* Card view for mobile */}
+        {/* Mobile Card View */}
         <div className="md:hidden flex flex-col gap-4">
-          {filteredStocks.map((stock) => {
-            let statusText = "In Stock";
-            let statusClass = "bg-green-100 text-green-800";
-            if (stock.quantity === 0) {
-              statusText = "Out of Stock";
-              statusClass = "bg-red-100 text-red-800";
-            } else if (stock.quantity <= stock.reorderLevel) {
-              statusText = "Low Stock";
-              statusClass = "bg-yellow-100 text-yellow-800";
-            }
-
-            return (
-              <div key={stock._id} className="bg-white shadow-md rounded-xl p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-bold text-gray-800">{stock.name}</h3>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass} whitespace-nowrap`}
-                  >
-                    {statusText}
-                  </span>
-                </div>
-                <p className="text-gray-600">
-                  <span className="font-medium">Category:</span> {stock.category}
-                </p>
-                <p className="text-gray-600">
-                  <span className="font-medium">Quantity:</span> {stock.quantity}
-                </p>
-                <p className="text-gray-600">
-                  <span className="font-medium">Reorder Level:</span> {stock.reorderLevel}
-                </p>
-                <p className="text-gray-600">
-                  <span className="font-medium">Date:</span>{" "}
-                  {new Date(stock.createdAt).toLocaleDateString()}
-                </p>
-                <div className="flex justify-between mt-2">
-                  <button
-                    onClick={() => handleView(stock)}
-                    className="text-blue-500 hover:text-blue-700 p-2 rounded-full hover:bg-blue-100"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  <button
-                    onClick={() => handleUpdate(stock)}
-                    className="text-green-500 hover:text-green-700 p-2 rounded-full hover:bg-green-100"
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(stock._id, stock.name)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                  <button
-                    onClick={() => handlePdfDownloadRow(stock)}
-                    className="text-purple-500 hover:text-purple-700 p-2 rounded-full hover:bg-purple-100"
-                  >
-                    <FontAwesomeIcon icon={faFilePdf} />
-                  </button>
-                </div>
+          {filteredStocks.map((stock) => (
+            <div
+              key={stock._id}
+              className="bg-white shadow-md rounded-xl p-4 flex flex-col gap-2"
+            >
+              <div className="flex justify-between">
+                <h3 className="text-lg font-bold">{stock.name}</h3>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    stock.quantity === 0
+                      ? "bg-red-100 text-red-800"
+                      : stock.quantity <= stock.reorderLevel
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-green-100 text-green-800"
+                  }`}
+                >
+                  {stock.quantity === 0
+                    ? "Out of Stock"
+                    : stock.quantity <= stock.reorderLevel
+                    ? "Low Stock"
+                    : "In Stock"}
+                </span>
               </div>
-            );
-          })}
+              <p>Category: {stock.category}</p>
+              <p>Supplier: {stock.supplier?.username || "N/A"}</p>
+              <p>Unit Price: Rs. {Number(stock.unitPrice).toFixed(2)}</p>
+              <p>Quantity: {stock.quantity}</p>
+              <p>Reorder Level: {stock.reorderLevel}</p>
+              <p>Total Price: Rs. {(stock.unitPrice * stock.quantity).toFixed(2)}</p>
+              <p>Date: {new Date(stock.createdAt).toLocaleDateString()}</p>
+              <div className="flex justify-center gap-4 mt-2">
+                <button
+                  onClick={() => handleView(stock)}
+                  className="text-blue-500 hover:text-blue-700 p-2"
+                >
+                  <FontAwesomeIcon icon={faEye} />
+                </button>
+                <button
+                  onClick={() => handleUpdate(stock)}
+                  className="text-green-500 hover:text-green-700 p-2"
+                >
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+                <button
+                  onClick={() => handleDelete(stock._id, stock.name)}
+                  className="text-red-500 hover:text-red-700 p-2"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+                <button
+                  onClick={() => handlePdfDownloadRow(stock)}
+                  className="text-purple-500 hover:text-purple-700 p-2"
+                >
+                  <FontAwesomeIcon icon={faFilePdf} />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Modal */}
@@ -500,6 +533,20 @@ const StockProducts = () => {
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Reorder Level</h3>
                     <p className="mt-1 text-lg font-medium">{selectedStock.reorderLevel}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Unit Price</h3>
+                    <p className="mt-1 text-lg font-medium">{selectedStock.unitPrice.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Total Price</h3>
+                    <p className="mt-1 text-lg font-medium">
+                      {(selectedStock.unitPrice * selectedStock.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <h3 className="text-sm font-medium text-gray-500">Supplier</h3>
+                    <p className="mt-1 text-lg font-medium text-gray-900">{selectedStock.supplier?.username || "N/A"}</p>
                   </div>
                   <div className="md:col-span-2">
                     <h3 className="text-sm font-medium text-gray-500">Description</h3>

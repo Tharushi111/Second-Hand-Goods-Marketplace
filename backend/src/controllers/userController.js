@@ -1,0 +1,235 @@
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+/**
+ * @desc Register a new user (buyer or supplier)
+ * @route POST /api/users/register
+ */
+export const registerUser = async (req, res) => {
+  try {
+    const { username, email, password, role, company, phone } = req.body;
+
+    // Validate role
+    if (!["buyer", "supplier"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role specified" });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "User already exists with this email" });
+
+    // Supplier-specific fields validation
+    if (role === "supplier" && (!company || !phone)) {
+      return res.status(400).json({ message: "Company name and phone are required for suppliers" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create user
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      ...(role === "supplier" && { company, phone })
+    });
+
+    // Generate JWT
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.status(201).json({
+      message: `${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully`,
+      token,
+      role: user.role,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        ...(role === "supplier" && { company: user.company, phone: user.phone })
+      }
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Login user
+ * @route POST /api/users/login
+ */
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Incorrect password" });
+
+    // Generate JWT
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.json({
+      message: "Login successful",
+      token,
+      role: user.role,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        ...(user.role === "supplier" && { company: user.company, phone: user.phone })
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Get all users (Filter by role optional)
+ * @route GET /api/users
+ */
+export const getUsers = async (req, res) => {
+  try {
+    const { role, page = 1, limit = 10 } = req.query;
+    const query = role ? { role } : {};
+
+    const users = await User.find(query)
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit));
+
+    const total = await User.countDocuments(query);
+
+    res.json({
+      users,
+      totalPages: Math.ceil(total / limit),
+      currentPage: Number(page),
+      total
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Get a single user by ID
+ * @route GET /api/users/:id
+ */
+export const getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Update a user
+ * @route PUT /api/users/:id
+ */
+export const updateUser = async (req, res) => {
+  try {
+    const { username, email, role, company, phone } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Only allow the user to update their own profile
+    if (req.user.id !== user._id.toString()) return res.status(403).json({ message: "Not authorized" });
+
+    user.username = username || user.username;
+    user.email = email || user.email;
+
+    if (user.role === "supplier") {
+      user.company = company || user.company;
+      user.phone = phone || user.phone;
+    }
+
+    const updatedUser = await user.save();
+    res.json({ message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Delete a user
+ * @route DELETE /api/users/:id
+ */
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Only allow the user to delete their own account
+    if (req.user.id !== user._id.toString()) return res.status(403).json({ message: "Not authorized" });
+
+    await user.deleteOne();
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Get current user's profile
+ * @route GET /api/users/profile
+ */
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Update current user's profile
+ * @route PUT /api/users/profile
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { username, email, company, phone } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.username = username || user.username;
+    user.email = email || user.email;
+
+    if (user.role === "supplier") {
+      user.company = company || user.company;
+      user.phone = phone || user.phone;
+    }
+
+    const updatedUser = await user.save();
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Get all suppliers (for stock dropdown)
+ * @route GET /api/user/suppliers
+ */
+export const getAllSuppliers = async (req, res) => {
+  try {
+    const suppliers = await User.find({ role: "supplier" }).select("_id username");
+    res.json(suppliers);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch suppliers", error: error.message });
+  }
+};
+

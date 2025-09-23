@@ -4,24 +4,22 @@ import {
   getStockById,
   createStock,
   updateStock,
-  deleteStock
+  deleteStock,
+  handleSuccessfulPayment,
+  handleOrderCancellation
 } from "../controllers/stockController.js";
 
 const router = express.Router();
 
-// Get all stocks
+// Public routes
 router.get("/", getAllStocks);
-
-// Get single stock
 router.get("/:id", getStockById);
-
-// Create new stock
 router.post("/", createStock);
-
-// Update stock
 router.put("/:id", updateStock);
-
-// Delete stock
 router.delete("/:id", deleteStock);
+
+// Placeholder routes for future order/payment integration
+router.post("/payment-success", handleSuccessfulPayment); // reduce stock after successful payment
+router.post("/order-cancel", handleOrderCancellation);    // restore stock when order cancelled
 
 export default router;

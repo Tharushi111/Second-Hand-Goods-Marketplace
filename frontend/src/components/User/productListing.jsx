@@ -22,7 +22,6 @@ import {
 import { toast, Toaster } from "react-hot-toast";
 import { Link } from "react-router-dom";
 
-// Import your logo image
 import logoImg from "../../assets/ReBuy.png";
 
 const ProductListing = () => {
@@ -138,16 +137,16 @@ const ProductListing = () => {
 
           {/* Navigation Links */}
           <nav className="hidden md:flex space-x-8">
-            <Link to="/home" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
+            <Link to="/HomePage" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               Home
             </Link>
             <Link to="/productListing" className="text-white text-lg font-medium transition-colors">
               Products
             </Link>
-            <Link to="/contact" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
+            <Link to="/ContactUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               Contact Us
             </Link>
-            <Link to="/about" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
+            <Link to="/AboutUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
               About Us
             </Link>
           </nav>
@@ -181,10 +180,10 @@ const ProductListing = () => {
               <Link to="/productListing" className="text-white transition-colors" onClick={toggleMenu}>
                 Products
               </Link>
-              <Link to="/contact" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
+              <Link to="/ContactUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
                 Contact Us
               </Link>
-              <Link to="/about" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
+              <Link to="/AboutUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
                 About Us
               </Link>
               <div className="pt-4 border-t border-blue-700">
@@ -599,8 +598,8 @@ const ProductListing = () => {
             <ul className="space-y-2">
               <li><Link to="/" className="text-blue-300 hover:text-white transition-colors">Home</Link></li>
               <li><Link to="/productListing" className="text-white transition-colors">Products</Link></li>
-              <li><Link to="/contact" className="text-blue-300 hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link to="/about" className="text-blue-300 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/ContactUs" className="text-blue-300 hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link to="/AboutUs" className="text-blue-300 hover:text-white transition-colors">About Us</Link></li>
             </ul>
           </div>
 
