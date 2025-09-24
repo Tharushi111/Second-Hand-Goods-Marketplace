@@ -14,10 +14,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [
-        /^\S+@\S+\.\S+$/,
-        "Please provide a valid email address"
-      ]
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"]
     },
     password: {
       type: String,
@@ -26,18 +23,38 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["buyer", "supplier"], 
-      default: "buyer",
+      enum: ["buyer", "supplier"],
+      default: "buyer"
     },
 
-    // Supplier specific fields
-    company: {
+    // Common fields for both buyers and suppliers
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [200, "Address cannot exceed 200 characters"]
+    },
+    city: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [50, "City cannot exceed 50 characters"]
+    },
+    country: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [50, "Country cannot exceed 50 characters"]
+    },
+
+    // Buyer-specific fields
+    postalCode: {
       type: String,
       required: function () {
-        return this.role === "supplier";
+        return this.role === "buyer";
       },
       trim: true,
-      maxlength: [100, "Company name cannot exceed 100 characters"]
+      maxlength: [10, "Postal code cannot exceed 10 characters"]
     },
     phone: {
       type: String,
@@ -49,13 +66,23 @@ const userSchema = new mongoose.Schema(
         /^(?:\+94|0)?7\d{8}$/,
         "Please provide a valid Sri Lankan phone number"
       ]
+    },
+
+    // Supplier-specific field
+    company: {
+      type: String,
+      required: function () {
+        return this.role === "supplier";
+      },
+      trim: true,
+      maxlength: [100, "Company name cannot exceed 100 characters"]
     }
   },
   {
     timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
-        delete ret.password; 
+        delete ret.password; // remove password from responses
         return ret;
       }
     }

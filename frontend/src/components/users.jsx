@@ -49,26 +49,30 @@ export default function AllUsers() {
     user.company?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Delete user
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-    if (!token) {
-      toast.error("Admin token not found. Please log in again.");
-      return;
-    }
-    try {
-      const res = await axios.delete(`http://localhost:5001/api/user/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success(res.data?.message || "User deleted successfully");
-      fetchUsers();
-    } catch (error) {
-      const status = error.response?.status;
-      if (status === 403) toast.error("Forbidden: You do not have permission");
-      else toast.error(error.response?.data?.message || "Failed to delete user");
-      console.error("Delete error:", error.response || error);
-    }
-  };
+ // Delete user
+const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this user?")) return;
+
+  if (!token) {
+    toast.error("Admin token not found. Please log in again.", { position: "top-center" });
+    return;
+  }
+
+  try {
+    const res = await axios.delete(`http://localhost:5001/api/user/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    toast.success(res.data?.message || "User deleted successfully", { position: "top-center" });
+    fetchUsers();
+  } catch (error) {
+    const status = error.response?.status;
+    if (status === 403) toast.error("Forbidden: You do not have permission", { position: "top-center" });
+    else toast.error(error.response?.data?.message || "Failed to delete user", { position: "top-center" });
+
+    console.error("Delete error:", error.response || error);
+  }
+};
 
   // Open update modal
   const handleUpdate = (user) => {
@@ -86,7 +90,7 @@ export default function AllUsers() {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     if (!token) {
-      toast.error("Admin token not found. Please log in again.");
+      toast.error("Admin token not found. Please log in again." ,{ position: "top-center" });
       return;
     }
     try {
@@ -95,12 +99,12 @@ export default function AllUsers() {
         selectedUser,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success(res.data?.message || "User updated successfully");
+      toast.success(res.data?.message || "User updated successfully" ,{ position: "top-center" });
       setShowUpdateModal(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update user");
+      toast.error(error.response?.data?.message || "Failed to update user", { position: "top-center" });
       console.error("Update error:", error.response || error);
     }
   };
@@ -137,7 +141,9 @@ export default function AllUsers() {
               <thead className="bg-blue-50">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">User</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">Contact</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">Phone Number</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">Address</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">Role</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">Company</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-blue-700 uppercase tracking-wider">Actions</th>
@@ -153,6 +159,8 @@ export default function AllUsers() {
                     <tr key={user._id} className="hover:bg-blue-50/50">
                       <td className="px-6 py-4">{user.username}</td>
                       <td className="px-6 py-4">{user.email}</td>
+                      <td className="px-6 py-4">{user.phone}</td>
+                      <td className="px-6 py-4">{user.address}</td>
                       <td className="px-6 py-4">{user.role}</td>
                       <td className="px-6 py-4">{user.company || "-"}</td>
                       <td className="px-6 py-4 flex justify-center gap-3">
@@ -234,7 +242,7 @@ export default function AllUsers() {
               <div className="space-y-2">
                 <label className="flex items-center text-sm font-medium text-gray-700">
                   <Mail size={16} className="mr-2 text-blue-600" />
-                  Email Address
+                  Email
                 </label>
                 <div className="relative">
                   <input 
@@ -265,6 +273,25 @@ export default function AllUsers() {
                     placeholder="Optional"
                   />
                   <Phone size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+
+              {/* Address Field */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Building size={16} className="mr-2 text-blue-600" />
+                  Address
+                </label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    name="adress" 
+                    value={selectedUser.address || ""} 
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Optional"
+                  />
+                  <Building size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
 

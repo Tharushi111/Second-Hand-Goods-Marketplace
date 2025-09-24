@@ -1,5 +1,7 @@
 import React from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Admin components
 import AdminLogin from "./components/AdminLogin.jsx";
@@ -21,7 +23,7 @@ import ContactUs from "./components/User/Contact.jsx";
 import UserLogin from "./components/User/UserLogin.jsx";
 import Register from "./components/User/UserRegistration.jsx"; 
 import BuyerDashboard from "./components/User/BuyerDashboard.jsx";
-import SupplierDashboard from "./components/User/SupplierDashboard.jsx";
+import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashboard.jsx";
 import FeedbackPage from "./components/User/feedback.jsx";
 
 // PrivateRoute for admin
@@ -76,7 +78,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/UserLogin" element={<UserLogin />} />
-            <Route path="/register" element={<Register />} /> {/* Registration route */}
+            <Route path="/register" element={<Register />} />
             <Route path="/productListing" element={<ProductListing />} />
             <Route path="/HomePage" element={<HomePage />} />
             <Route path="/AboutUs" element={<AboutUs />} />
@@ -199,6 +201,19 @@ function App() {
         {/* Footer for admin pages only */}
         {!isNoAdminLayout && <Footer />}
       </div>
+
+      {/* Toast container for all pages */}
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }
