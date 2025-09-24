@@ -22,7 +22,7 @@ export const verifyAdminToken = (req, res, next) => {
   }
 };
 
-// Optional: separate role check middleware
+// separate role check middleware
 export const requireAdminRole = (...roles) => (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Unauthenticated" });
   if (!roles.includes(req.user.role)) {

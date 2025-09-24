@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
-        delete ret.password; // never return password in API response
+        delete ret.password; 
         return ret;
       }
     }

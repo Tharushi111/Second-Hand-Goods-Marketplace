@@ -22,7 +22,8 @@ import {
 import { toast, Toaster } from "react-hot-toast";
 import { Link } from "react-router-dom";
 
-import logoImg from "../../assets/ReBuy.png";
+import Navbar from "../User/UserNavbar";
+import Footer from "../User/UserFooter";
 
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
@@ -121,80 +122,7 @@ const ProductListing = () => {
       <Toaster position="top-right" />
 
       {/* Navbar - Same as Homepage */}
-      <header className={`bg-gradient-to-r from-blue-900 to-blue-800 shadow-lg sticky top-0 z-50 transition-all duration-300 ${scrollPosition > 50 ? 'py-2' : 'py-4'} border-b border-blue-700`}>
-        <div className="container mx-auto flex items-center justify-between px-6">
-          {/* Logo and Brand Name */}
-          <Link to="/home" className="flex items-center space-x-3">
-            <img
-              src={logoImg}
-              alt="ReBuy.lk Logo"
-              className="h-12 w-12 object-contain"
-            />
-            <span className="text-white text-2xl font-bold tracking-wide">
-              ReBuy.lk
-            </span>
-          </Link>
-
-          {/* Navigation Links */}
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/HomePage" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              Home
-            </Link>
-            <Link to="/productListing" className="text-white text-lg font-medium transition-colors">
-              Products
-            </Link>
-            <Link to="/ContactUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              Contact Us
-            </Link>
-            <Link to="/AboutUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              About Us
-            </Link>
-          </nav>
-
-          {/* Right side icons */}
-          <div className="flex items-center space-x-6">
-            <div className="hidden md:block text-blue-200 text-xl cursor-pointer hover:text-white transition-colors">
-              <FaShoppingCart />
-            </div>
-            <div className="text-blue-200 text-xl cursor-pointer hover:text-white transition-colors">
-              <FaUserCircle />
-            </div>
-            
-            {/* Mobile menu button */}
-            <button 
-              className="md:hidden text-blue-200 text-xl focus:outline-none"
-              onClick={toggleMenu}
-            >
-              {isMenuOpen ? <FaTimes /> : <FaBars />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-blue-800 px-6 py-4">
-            <div className="flex flex-col space-y-4">
-              <Link to="/home" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                Home
-              </Link>
-              <Link to="/productListing" className="text-white transition-colors" onClick={toggleMenu}>
-                Products
-              </Link>
-              <Link to="/ContactUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                Contact Us
-              </Link>
-              <Link to="/AboutUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                About Us
-              </Link>
-              <div className="pt-4 border-t border-blue-700">
-                <Link to="/cart" className="text-blue-200 hover:text-white transition-colors flex items-center" onClick={toggleMenu}>
-                  <FaShoppingCart className="mr-2" /> Shopping Cart
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <div className="flex flex-col items-center max-w-7xl mx-auto p-4 md:p-6 flex-grow">
@@ -563,81 +491,7 @@ const ProductListing = () => {
         </div>
       )}
 
-      {/* Footer - Same as Homepage */}
-      <footer className="bg-gradient-to-b from-blue-900 to-blue-950 text-white mt-auto">
-        <div className="container mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand section */}
-          <div className="md:col-span-1">
-            <div className="flex items-center space-x-3 mb-4">
-              <img
-                src={logoImg}
-                alt="ReBuy.lk Logo"
-                className="h-12 w-12 object-contain"
-              />
-              <span className="text-2xl font-bold">ReBuy.lk</span>
-            </div>
-            <p className="text-blue-300 mb-4">
-              Your trusted marketplace for second-hand goods. Buy, sell, and save!
-            </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-blue-300 hover:text-white transition-colors">
-                <FaFacebook size={20} />
-              </a>
-              <a href="#" className="text-blue-300 hover:text-white transition-colors">
-                <FaInstagram size={20} />
-              </a>
-              <a href="#" className="text-blue-300 hover:text-white transition-colors">
-                <FaTwitter size={20} />
-              </a>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><Link to="/" className="text-blue-300 hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/productListing" className="text-white transition-colors">Products</Link></li>
-              <li><Link to="/ContactUs" className="text-blue-300 hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link to="/AboutUs" className="text-blue-300 hover:text-white transition-colors">About Us</Link></li>
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Categories</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Laptops & Computers</a></li>
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Mobile Phones</a></li>
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Televisions</a></li>
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Other Electronics</a></li>
-            </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Newsletter</h3>
-            <p className="text-blue-300 mb-4">Subscribe to get updates on new products and promotions</p>
-            <div className="flex">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                className="bg-blue-800 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-400 w-full"
-              />
-              <button className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-r-lg transition-colors">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="border-t border-blue-800">
-          <div className="container mx-auto px-6 py-4 text-center text-blue-400 text-sm">
-            © {new Date().getFullYear()} ReBuy.lk. All rights reserved.
-          </div>
-        </div>
-      </footer>
+    <Footer />
     </div>
   );
 };

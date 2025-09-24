@@ -11,6 +11,7 @@ import ProductTable from "./components/product/products.jsx";
 import AddProductForm from "./components/product/addProduct.jsx";
 import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
 import FinancePage from "./components/finance/finance.jsx";
+import AllUsers from "./components/users.jsx";
 
 // User components
 import ProductListing from "./components/User/productListing.jsx";
@@ -21,6 +22,7 @@ import UserLogin from "./components/User/UserLogin.jsx";
 import Register from "./components/User/UserRegistration.jsx"; 
 import BuyerDashboard from "./components/User/BuyerDashboard.jsx";
 import SupplierDashboard from "./components/User/SupplierDashboard.jsx";
+import FeedbackPage from "./components/User/feedback.jsx";
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -54,6 +56,7 @@ function App() {
     "/UserLogin",
     "/BuyerDashboard",
     "/SupplierDashboard",
+    "/FeedbackPage",
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
@@ -78,6 +81,7 @@ function App() {
             <Route path="/HomePage" element={<HomePage />} />
             <Route path="/AboutUs" element={<AboutUs />} />
             <Route path="/ContactUs" element={<ContactUs />} />
+            <Route path="/FeedbackPage" element={<FeedbackPage />} />
 
             {/* Buyer & Supplier Dashboards */}
             <Route
@@ -110,7 +114,7 @@ function App() {
               path="/users"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Users Page</h2>
+                  <AllUsers /> 
                 </AdminPrivateRoute>
               }
             />

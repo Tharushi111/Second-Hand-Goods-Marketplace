@@ -24,10 +24,11 @@ router.get("/profile", verifyToken, getProfile);
 router.put("/profile", verifyToken, updateProfile);
 
 // Admin-only routes (admins login separately)
-router.get("/", verifyToken, requireRole('admin'), getUsers);
+router.get("/", verifyToken, requireRole('admin', 'super_admin'), getUsers);
 router.get("/:id", verifyToken, requireRole('admin'), getUser);
-router.put("/:id", verifyToken, requireRole('admin'), updateUser);
-router.delete("/:id", verifyToken, requireRole('admin'), deleteUser);
+router.put("/:id", verifyToken, requireRole('admin', 'super_admin'), updateUser);
+router.delete("/:id", verifyToken, requireRole('admin', 'super_admin'), deleteUser);
+
 
 // src/routes/userRoutes.js
 router.get("/suppliers", verifyToken, requireRole("admin"), getAllSuppliers);
