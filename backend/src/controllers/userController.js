@@ -145,11 +145,15 @@ export const updateUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Only allow the user to update their own profile
-    if (req.user.id !== user._id.toString()) return res.status(403).json({ message: "Not authorized" });
+    // Allow admins or the user themselves to update
+    if (req.user.role !== "admin" && req.user.role !== "super_admin" && req.user.id !== user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
 
+    // Update fields
     user.username = username || user.username;
     user.email = email || user.email;
+    user.role = role || user.role;
 
     if (user.role === "supplier") {
       user.company = company || user.company;
@@ -163,17 +167,20 @@ export const updateUser = async (req, res) => {
   }
 };
 
+
 /**
  * @desc Delete a user
- * @route DELETE /api/users/:id
  */
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Only allow the user to delete their own account
-    if (req.user.id !== user._id.toString()) return res.status(403).json({ message: "Not authorized" });
+    // Admins can delete any user, others can only delete their own account
+  if (req.user.id !== user._id.toString() && req.user.role !== "admin" && req.user.role !== "super_admin") {
+    return res.status(403).json({ message: "Not authorized" });
+  }
+
 
     await user.deleteOne();
     res.json({ message: "User deleted successfully" });

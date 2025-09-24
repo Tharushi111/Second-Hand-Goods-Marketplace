@@ -14,6 +14,8 @@ import {
   faCheckCircle,
   faStar
 } from '@fortawesome/free-solid-svg-icons';
+import Navbar from "../User/UserNavbar";
+import Footer from "../User/UserFooter";
 
 export default function ContactUs() {
   const contactMethods = [
@@ -68,6 +70,8 @@ export default function ContactUs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
+
+      <Navbar />
       {/* Enhanced Header Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
         {/* Animated Background */}
@@ -279,6 +283,8 @@ export default function ContactUs() {
           ))}
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

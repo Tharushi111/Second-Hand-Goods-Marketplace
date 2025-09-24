@@ -17,6 +17,8 @@ import {
   faCheckCircle,
   faStar
 } from '@fortawesome/free-solid-svg-icons';
+import Navbar from "../User/UserNavbar";
+import Footer from "../User/UserFooter";
 
 export default function AboutUs() {
   const features = [
@@ -89,6 +91,8 @@ export default function AboutUs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
+
+      <Navbar />
       {/* Simplified Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
         {/* Animated Background */}
@@ -314,6 +318,8 @@ export default function AboutUs() {
           </motion.div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }
