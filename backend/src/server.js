@@ -7,6 +7,7 @@ import reorderRoutes from "./routes/ReorderRequestRoutes.js";
 import productRoutes from "./routes/productRoutes.js"; 
 import adminAuthRoutes from "./routes/adminAuthRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import financeRoutes from "./routes/financeRoutes.js"
 import multer from "multer"; 
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use("/api/stock", stockRoutes);
 app.use("/api/reorders", reorderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/finance", financeRoutes)
 
 
 // Connect to MongoDB and start server

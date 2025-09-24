@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 
 // Admin components
-import AdminLogin from "./components/adminLogin.jsx";
+import AdminLogin from "./components/AdminLogin.jsx";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer.jsx";
@@ -10,6 +10,7 @@ import Inventory from "./components/inventory/inventory.jsx";
 import ProductTable from "./components/product/products.jsx";
 import AddProductForm from "./components/product/addProduct.jsx";
 import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
+import FinancePage from "./components/finance/finance.jsx";
 
 // User components
 import ProductListing from "./components/User/productListing.jsx";
@@ -165,7 +166,7 @@ function App() {
               path="/finance"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Finance Page</h2>
+                  <FinancePage />
                 </AdminPrivateRoute>
               }
             />
