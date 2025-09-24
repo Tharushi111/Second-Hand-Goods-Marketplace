@@ -118,69 +118,211 @@ export default function FinancePage() {
   const expenseEntries = entries.filter(e => e.type === "Expense");
 
   // Generate PDF Report
-  const generatePDF = () => {
-    const doc = new jsPDF("p", "pt", "a4");
-    const margin = 40;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let currentY = 40;
+const generatePDF = async () => {
+  const doc = new jsPDF("p", "pt", "a4");
+  const margin = 40;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let currentY = 40;
 
-    // Header
-    doc.setFontSize(24).setTextColor(40, 103, 178);
-    doc.setFont(undefined, "bold");
-    doc.text("Financial Report", pageWidth / 2, currentY, { align: "center" });
-    
-    doc.setFontSize(12).setTextColor(100, 100, 100);
-    doc.setFont(undefined, "normal");
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, currentY + 20, { align: "center" });
+  // === HEADER WITH LOGO and COMPANY DETAILS
+  try {
+    const logo = await fetch("/ReBuyLogo.png")
+      .then(res => res.blob())
+      .then(blob => {
+        return new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      });
 
-    currentY += 50;
+    // Logo on the left
+    doc.addImage(logo, "PNG", margin, currentY, 70, 70);
 
-    // Summary Section
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 80, 5, 5, 'F');
-    
-    doc.setFontSize(16).setTextColor(40, 103, 178);
-    doc.text("Financial Summary", margin + 15, currentY + 20);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(80, 80, 80);
-    doc.text(`Total Balance: $${balance.toFixed(2)}`, margin + 20, currentY + 45);
-    doc.text(`Total Income: $${totalIncome.toFixed(2)}`, margin + 20, currentY + 65);
-    doc.text(`Total Expenses: $${totalExpenses.toFixed(2)}`, margin + 250, currentY + 45);
-    doc.text(`Savings Rate: ${savingsRate.toFixed(1)}%`, margin + 250, currentY + 65);
+    // Company details on the top right corner
+    const companyX = pageWidth - margin; // starting from right margin
+    doc.setFontSize(18).setTextColor(40, 103, 178).setFont(undefined, "bold");
+    doc.text("ReBuy.lk", companyX, currentY + 20, { align: "right" });
 
-    currentY += 100;
+    doc.setFontSize(10).setTextColor(80, 80, 80).setFont(undefined, "normal");
+    doc.text("77A, Market Street, Colombo, Sri Lanka", companyX, currentY + 40, { align: "right" });
+    doc.text("Contact: +94 77 321 4567", companyX, currentY + 55, { align: "right" });
+    doc.text("Email: rebuy@gmail.com", companyX, currentY + 70, { align: "right" });
+  } catch (error) {
+    console.error("Error loading logo:", error);
+  }
 
-    // Transactions Table
-    doc.setFillColor(40, 103, 178);
-    doc.rect(margin, currentY, pageWidth - 2 * margin, 35, 'F');
-    
-    doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
-    doc.text("Description", margin + 15, currentY + 22);
-    doc.text("Amount", margin + 300, currentY + 22);
-    doc.text("Type", margin + 400, currentY + 22);
-    doc.text("Date", margin + 500, currentY + 22);
+  currentY += 90;
 
-    currentY += 45;
+  // === REPORT TITLE & DATE ===
+  doc.setFontSize(20).setTextColor(40, 103, 178).setFont(undefined, "bold");
+  doc.text("Financial Report", pageWidth / 2, currentY, { align: "center" });
 
-    entries.slice(0, 20).forEach((entry, index) => {
-      if (currentY > 700) {
-        doc.addPage();
-        currentY = 40;
-      }
+  doc.setFontSize(12).setTextColor(100, 100, 100).setFont(undefined, "normal");
+  const reportDate = new Date().toLocaleString("en-LK", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  doc.text(`Generated: ${reportDate}`, pageWidth / 2, currentY + 20, { align: "center" });
 
-      doc.setTextColor(50, 50, 50);
-      doc.setFontSize(10);
-      doc.text(entry.description.substring(0, 40), margin + 15, currentY + 5);
-      doc.text(`$${parseFloat(entry.amount).toFixed(2)}`, margin + 300, currentY + 5);
-      doc.text(entry.type, margin + 400, currentY + 5);
-      doc.text(new Date(entry.date).toLocaleDateString(), margin + 500, currentY + 5);
+  currentY += 50;
 
-      currentY += 20;
-    });
+  // === FINANCIAL SUMMARY BOX ===
+  doc.setFillColor(235, 245, 255);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 100, 5, 5, "F");
+  doc.setDrawColor(40, 103, 178).setLineWidth(1);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 100, 5, 5, "S");
 
-    doc.save("financial_report.pdf");
-  };
+  doc.setFontSize(16).setTextColor(40, 103, 178).setFont(undefined, "bold");
+  doc.text("Financial Summary", margin + 15, currentY + 25);
+
+  // Labels
+  doc.setFontSize(12).setTextColor(60, 60, 60).setFont(undefined, "bold");
+  doc.text("Total Balance:", margin + 30, currentY + 50);
+  doc.text("Total Income:", margin + 30, currentY + 70);
+  doc.text("Total Expenses:", margin + 280, currentY + 50);
+  doc.text("Savings Rate:", margin + 280, currentY + 70);
+
+  // Values
+  doc.setTextColor(40, 103, 178).setFont(undefined, "normal");
+  doc.text(
+    `Rs. ${balance.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    margin + 130,
+    currentY + 50
+  );
+  doc.text(
+    `Rs. ${totalIncome.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    margin + 130,
+    currentY + 70
+  );
+  doc.text(
+    `Rs. ${totalExpenses.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    margin + 390,
+    currentY + 50
+  );
+  doc.text(`${savingsRate.toFixed(1)}%`, margin + 390, currentY + 70);
+
+  currentY += 120;
+
+  // === TRANSACTIONS TABLE HEADER ===
+  doc.setFillColor(40, 103, 178);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 40, 3, 3, "F");
+
+  doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
+  doc.text("Description", margin + 15, currentY + 25);
+  doc.text("Amount (Rs.)", margin + 280, currentY + 25);
+  doc.text("Type", margin + 420, currentY + 25);
+ 
+  currentY += 50;
+
+  // === TRANSACTIONS TABLE ROWS ===
+  entries.slice(0, 25).forEach((entry, index) => {
+    if (currentY > 700) {
+      doc.addPage();
+      currentY = 40;
+
+      // Re-add table header on new page
+      doc.setFillColor(40, 103, 178);
+      doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 40, 3, 3, "F");
+      doc.setTextColor(255, 255, 255).setFont(undefined, "bold");
+      doc.text("Description", margin + 15, currentY + 25);
+      doc.text("Amount (Rs.)", margin + 280, currentY + 25);
+      doc.text("Type", margin + 420, currentY + 25);
+      doc.text("Date", margin + 500, currentY + 25);
+      currentY += 50;
+    }
+
+    // Alternate row background color
+    if (index % 2 === 0) {
+      doc.setFillColor(245, 247, 250);
+      doc.rect(margin, currentY - 5, pageWidth - 2 * margin, 20, "F");
+    }
+
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(10);
+
+    // Description
+    doc.text(entry.description.substring(0, 40), margin + 15, currentY + 5);
+
+    // Amount with color coding
+    if (entry.type === "Income") doc.setTextColor(16, 185, 129); // Green
+    else doc.setTextColor(239, 68, 68); // Red
+
+    doc.text(
+      `Rs. ${parseFloat(entry.amount).toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      margin + 280,
+      currentY + 5
+    );
+
+    // Type
+    doc.setTextColor(50, 50, 50);
+    doc.text(entry.type, margin + 420, currentY + 5);
+
+    // Date properly formatted
+    const formattedDate = new Date(entry.date).toLocaleDateString("en-LK");
+    doc.text(formattedDate, margin + 500, currentY + 5);
+
+    currentY += 20;
+  });
+
+  // === FOOTER SUMMARY ===
+  if (currentY > 650) {
+    doc.addPage();
+    currentY = 40;
+  }
+
+  currentY += 20;
+
+  doc.setFillColor(240, 245, 255);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 80, 5, 5, "F");
+  doc.setDrawColor(200, 220, 240).setLineWidth(1);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 80, 5, 5, "S");
+
+  doc.setFontSize(12).setTextColor(40, 103, 178).setFont(undefined, "bold");
+  doc.text("Report Summary", margin + 15, currentY + 20);
+
+  doc.setFontSize(10).setTextColor(80, 80, 80).setFont(undefined, "normal");
+  doc.text(`• Total Transactions: ${entries.length}`, margin + 20, currentY + 40);
+  doc.text(`• Income Transactions: ${incomeEntries.length}`, margin + 20, currentY + 55);
+  doc.text(`• Expense Transactions: ${expenseEntries.length}`, margin + 20, currentY + 70);
+
+  doc.text(
+    `• Period: ${
+      entries.length > 0
+        ? new Date(entries[entries.length - 1].date).toLocaleDateString("en-LK")
+        : "N/A"
+    } to ${
+      entries.length > 0
+        ? new Date(entries[0].date).toLocaleDateString("en-LK")
+        : "N/A"
+    }`,
+    margin + 250,
+    currentY + 40
+  );
+
+  doc.text(
+    `• Avg Monthly Income: Rs. ${(
+      totalIncome / 6
+    ).toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    margin + 250,
+    currentY + 55
+  );
+
+  doc.text(
+    `• Avg Monthly Expense: Rs. ${(
+      totalExpenses / 6
+    ).toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    margin + 250,
+    currentY + 70
+  );
+
+  // === SAVE PDF ===
+  doc.save("financial_report.pdf");
+};
+
 
   // Chart Data
   const doughnutData = {
@@ -342,7 +484,7 @@ export default function FinancePage() {
             color={balance >= 0 ? "green" : "red"}
             loading={loading}
             description="Current financial position"
-            prefix="$"
+            prefix="Rs. "
           />
           <StatCard
             title="Total Income"
@@ -351,7 +493,7 @@ export default function FinancePage() {
             color="green"
             loading={loading}
             description="All income sources"
-            prefix="$"
+            prefix="Rs. "
           />
           <StatCard
             title="Total Expenses"
@@ -360,7 +502,7 @@ export default function FinancePage() {
             color="red"
             loading={loading}
             description="All expenditures"
-            prefix="$"
+            prefix="Rs. "
           />
           <StatCard
             title="Savings Rate"
@@ -478,13 +620,13 @@ export default function FinancePage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">Rs.</span>
                   <input
                     type="number"
                     placeholder="0.00"
                     value={form.amount}
                     onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                    className="w-full pl-8 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -558,7 +700,7 @@ export default function FinancePage() {
                       </p>
                     </div>
                     <div className={`font-semibold ${e.type === "Income" ? "text-green-600" : "text-red-600"}`}>
-                      {e.type === "Income" ? "+" : "-"}${parseFloat(e.amount).toFixed(2)}
+                      {e.type === "Income" ? "+" : "-"}Rs.{parseFloat(e.amount).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                   </motion.div>
                 ))}
@@ -597,7 +739,7 @@ const StatCard = ({ title, value, icon: Icon, color, loading, description, prefi
             <div className="h-9 w-16 bg-gray-200 rounded-lg animate-pulse mt-1"></div>
           ) : (
             <p className={`text-3xl font-bold ${colorMap[color].value}`}>
-              {prefix}{typeof value === 'number' ? value.toFixed(2) : value}{suffix}
+              {prefix}{typeof value === 'number' ? value.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}{suffix}
             </p>
           )}
         </div>
