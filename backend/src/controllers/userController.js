@@ -4,11 +4,11 @@ import jwt from "jsonwebtoken";
 
 /**
  * @desc Register a new user (buyer or supplier)
- * @route POST /api/users/register
+ * @route POST /api/user/register
  */
 export const registerUser = async (req, res) => {
   try {
-    const { username, email, password, role, company, phone } = req.body;
+    const { username, email, password, role, company, phone, address, city, country, postalCode } = req.body;
 
     // Validate role
     if (!["buyer", "supplier"].includes(role)) {
@@ -24,6 +24,16 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Company name and phone are required for suppliers" });
     }
 
+    // Buyer-specific postal code validation
+    if (role === "buyer" && !postalCode) {
+      return res.status(400).json({ message: "Postal code is required for buyers" });
+    }
+
+    // Common fields validation
+    if (!address || !city || !country) {
+      return res.status(400).json({ message: "Address, city, and country are required" });
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -33,6 +43,10 @@ export const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      address,
+      city,
+      country,
+      ...(role === "buyer" && { postalCode }),
       ...(role === "supplier" && { company, phone })
     });
 
@@ -48,6 +62,10 @@ export const registerUser = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        address: user.address,
+        city: user.city,
+        country: user.country,
+        ...(role === "buyer" && { postalCode: user.postalCode }),
         ...(role === "supplier" && { company: user.company, phone: user.phone })
       }
     });
@@ -59,7 +77,7 @@ export const registerUser = async (req, res) => {
 
 /**
  * @desc Login user
- * @route POST /api/users/login
+ * @route POST /api/user/login
  */
 export const loginUser = async (req, res) => {
   try {
@@ -85,6 +103,10 @@ export const loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        address: user.address,
+        city: user.city,
+        country: user.country,
+        ...(user.role === "buyer" && { postalCode: user.postalCode }),
         ...(user.role === "supplier" && { company: user.company, phone: user.phone })
       }
     });
@@ -94,8 +116,53 @@ export const loginUser = async (req, res) => {
 };
 
 /**
+ * @desc Get current user's profile
+ * @route GET /api/user/profile
+ */
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @desc Update current user's profile
+ * @route PUT /api/user/profile
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { username, email, company, phone, address, city, country, postalCode } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.username = username || user.username;
+    user.email = email || user.email;
+    user.address = address || user.address;
+    user.city = city || user.city;
+    user.country = country || user.country;
+
+    if (user.role === "buyer") {
+      user.postalCode = postalCode || user.postalCode;
+    }
+
+    if (user.role === "supplier") {
+      user.company = company || user.company;
+      user.phone = phone || user.phone;
+    }
+
+    const updatedUser = await user.save();
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
  * @desc Get all users (Filter by role optional)
- * @route GET /api/users
+ * @route GET /api/user
  */
 export const getUsers = async (req, res) => {
   try {
@@ -123,7 +190,7 @@ export const getUsers = async (req, res) => {
 
 /**
  * @desc Get a single user by ID
- * @route GET /api/users/:id
+ * @route GET /api/user/:id
  */
 export const getUser = async (req, res) => {
   try {
@@ -136,25 +203,28 @@ export const getUser = async (req, res) => {
 };
 
 /**
- * @desc Update a user
- * @route PUT /api/users/:id
+ * @desc Update a user by ID
+ * @route PUT /api/user/:id
  */
 export const updateUser = async (req, res) => {
   try {
-    const { username, email, role, company, phone } = req.body;
+    const { username, email, role, company, phone, address, city, country, postalCode } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Allow admins or the user themselves to update
+    // Admin or self
     if (req.user.role !== "admin" && req.user.role !== "super_admin" && req.user.id !== user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // Update fields
     user.username = username || user.username;
     user.email = email || user.email;
     user.role = role || user.role;
+    user.address = address || user.address;
+    user.city = city || user.city;
+    user.country = country || user.country;
 
+    if (user.role === "buyer") user.postalCode = postalCode || user.postalCode;
     if (user.role === "supplier") {
       user.company = company || user.company;
       user.phone = phone || user.phone;
@@ -167,20 +237,18 @@ export const updateUser = async (req, res) => {
   }
 };
 
-
 /**
- * @desc Delete a user
+ * @desc Delete a user by ID (Admin) 
+ * @route DELETE /api/user/:id
  */
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Admins can delete any user, others can only delete their own account
-  if (req.user.id !== user._id.toString() && req.user.role !== "admin" && req.user.role !== "super_admin") {
-    return res.status(403).json({ message: "Not authorized" });
-  }
-
+    if (req.user.id !== user._id.toString() && req.user.role !== "admin" && req.user.role !== "super_admin") {
+      return res.status(403).json({ message: "Not authorized" });
+    }
 
     await user.deleteOne();
     res.json({ message: "User deleted successfully" });
@@ -190,38 +258,16 @@ export const deleteUser = async (req, res) => {
 };
 
 /**
- * @desc Get current user's profile
- * @route GET /api/users/profile
+ * @desc Delete own account (Buyer or Supplier)
+ * @route DELETE /api/user/profile
  */
-export const getProfile = async (req, res) => {
+export const deleteOwnAccount = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
-/**
- * @desc Update current user's profile
- * @route PUT /api/users/profile
- */
-export const updateProfile = async (req, res) => {
-  try {
-    const { username, email, company, phone } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.username = username || user.username;
-    user.email = email || user.email;
-
-    if (user.role === "supplier") {
-      user.company = company || user.company;
-      user.phone = phone || user.phone;
-    }
-
-    const updatedUser = await user.save();
-    res.json({ message: "Profile updated successfully", user: updatedUser });
+    await user.deleteOne();
+    res.json({ message: "Account deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -239,4 +285,3 @@ export const getAllSuppliers = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch suppliers", error: error.message });
   }
 };
-
