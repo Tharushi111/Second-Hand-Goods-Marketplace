@@ -24,6 +24,8 @@ import UserLogin from "./components/User/UserLogin.jsx";
 import Register from "./components/User/UserRegistration.jsx"; 
 import BuyerDashboard from "./components/User/BuyerDashboard.jsx";
 import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashboard.jsx";
+import AddSuplierOffer from "./components/User/SupplierDashboard/AddSupplierOffer.jsx";
+import SupplierOfferList from "./components/User/SupplierDashboard/SupplierOfferList.jsx";
 import FeedbackPage from "./components/User/feedback.jsx";
 
 // PrivateRoute for admin
@@ -58,6 +60,8 @@ function App() {
     "/UserLogin",
     "/BuyerDashboard",
     "/SupplierDashboard",
+    "/AddSupplierOffer",
+    "/SupplierOfferList",
     "/FeedbackPage",
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
@@ -84,6 +88,8 @@ function App() {
             <Route path="/AboutUs" element={<AboutUs />} />
             <Route path="/ContactUs" element={<ContactUs />} />
             <Route path="/FeedbackPage" element={<FeedbackPage />} />
+            <Route path="/AddSupplierOffer" element={<AddSuplierOffer />} />
+            <Route path="/SupplierOfferList" element={<SupplierOfferList />} />
 
             {/* Buyer & Supplier Dashboards */}
             <Route
