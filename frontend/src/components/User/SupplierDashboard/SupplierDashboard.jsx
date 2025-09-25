@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import SupplierOfferList from "./SupplierOfferList";
 
 export default function SupplierDashboard() {
   const [activePage, setActivePage] = useState("supplierHome");
@@ -104,7 +105,6 @@ export default function SupplierDashboard() {
           </button>
         )}
       </nav>
-
 
       {/* Main container */}
       <div className="flex flex-1 px-8 py-8 gap-8 max-w-7xl mx-auto w-full">
@@ -304,11 +304,16 @@ export default function SupplierDashboard() {
             </div>
           )}
 
-          {/* Supply Offers */}
+          {/* Supply Offers*/}
           {activePage === "supplyOffers" && (
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Supply Offers</h2>
-              <p className="text-gray-600 mb-6">This feature is coming soon!</p>
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 w-full overflow-hidden">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Supply Offers</h2>
+                <p className="text-gray-600">Manage your product supply offers</p>
+              </div>
+              <div className="w-full">
+                <SupplierOfferList />
+              </div>
             </div>
           )}
         </main>

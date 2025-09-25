@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import Navbar from "./UserNavbar";
 import Footer from "./UserFooter";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+
+
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -18,10 +23,41 @@ export default function Register() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const navigate = useNavigate();
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      const res = await fetch("http://localhost:5001/api/user/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tokenId: credentialResponse.credential }), 
+      });
+  
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Google login failed");
+  
+      // Save user info
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("user", JSON.stringify(data.user));
+  
+      // Redirect based on role
+      if (data.role === "buyer") {
+        navigate("/BuyerDashboard");
+      } else if (data.role === "supplier") {
+        navigate("/SupplierDashboard");
+      }
+    } catch (err) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+  
+    
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -230,6 +266,10 @@ export default function Register() {
 
             <div className="text-sm text-blue-600/70 text-center">
               <span className="text-red-500">*</span> Required fields
+            </div>
+
+            <div className="flex justify-center mb-4">
+              <GoogleLogin onSuccess={handleGoogleLogin} onError={() => setMessage({type:'error', text:'Google login failed'})} />
             </div>
 
             <button

@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { Eye, EyeOff, Mail, Lock, Loader, User, ArrowRight, LogIn } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader, User, ArrowRight } from "lucide-react";
+import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 import Navbar from "./UserNavbar";
 import Footer from "./UserFooter";
 
@@ -54,12 +56,45 @@ const UserLogin = () => {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
+  // ---------------- GOOGLE LOGIN ----------------
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      // decoded contains email, name, picture, etc.
+      const { email, name } = decoded;
+
+      const { data } = await axios.post(
+        "http://localhost:5001/api/user/google-login",
+        { tokenId: credentialResponse.credential }
+      );
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      toast.success(`Welcome ${data.user.username}! Redirecting...`, {
+        position: "top-center",
+        duration: 2000,
+      });
+
+      setTimeout(() => {
+        navigate(data.role === "supplier" ? "/SupplierDashboard" : "/BuyerDashboard");
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      toast.error("Google login failed. Please try again.", { position: "top-center" });
+    }
+  };
+
+  const handleGoogleLoginFailure = () => {
+    toast.error("Google login failed. Please try again.", { position: "top-center" });
+  };
+
+  // ------------------------------------------------
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100">
-      {/* Navbar at top */}
       <Navbar />
-
-      {/* Toast notifications */}
       <Toaster
         position="top-center"
         toastOptions={{
@@ -80,10 +115,8 @@ const UserLogin = () => {
         <div className="absolute top-40 left-1/4 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Login Card */}
       <div className="flex-grow flex items-center justify-center px-4 py-8">
         <div className="max-w-md w-full space-y-8 relative z-10">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3">
               Welcome Back
@@ -91,7 +124,6 @@ const UserLogin = () => {
             <p className="text-blue-600/80 font-medium text-lg">Sign in to your account</p>
           </div>
 
-          {/* Form */}
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-blue-100/50 p-8 sm:p-10 transform hover:translate-y-[-2px] transition-all duration-300">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-5">
@@ -140,7 +172,6 @@ const UserLogin = () => {
                 </div>
               </div>
 
-              {/* Login Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -158,6 +189,21 @@ const UserLogin = () => {
                 )}
               </button>
 
+              {/* OR divider */}
+              <div className="flex items-center my-4">
+                <hr className="flex-grow border-blue-200" />
+                <span className="mx-4 text-blue-400 font-semibold">OR</span>
+                <hr className="flex-grow border-blue-200" />
+              </div>
+
+              {/* GOOGLE LOGIN */}
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginFailure}
+                />
+              </div>
+
               {/* Signup Link */}
               <div className="mt-8 pt-8 border-t border-blue-100 text-center">
                 <p className="text-blue-600/80 text-sm font-medium mb-4">New to our platform?</p>
@@ -174,21 +220,21 @@ const UserLogin = () => {
         </div>
       </div>
 
-      {/* Footer at bottom */}
       <Footer />
 
-      {/* Animations CSS */}
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob { animation: blob 7s infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-      `}</style>
+      <style>
+        {`
+          @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+          }
+          .animate-blob { animation: blob 7s infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+          .animation-delay-4000 { animation-delay: 4s; }
+        `}
+      </style>
     </div>
   );
 };
