@@ -6,9 +6,11 @@ import {
   getUser, 
   updateUser, 
   deleteUser, 
+  deleteOwnAccount,
   getProfile, 
   updateProfile,
-  getAllSuppliers
+  getAllSuppliers,
+  googleLoginUser
 } from "../controllers/userController.js";
 
 import { verifyToken, requireRole } from "../middleware/auth.js";
@@ -22,15 +24,17 @@ router.post("/login", loginUser);
 // Protected routes
 router.get("/profile", verifyToken, getProfile);
 router.put("/profile", verifyToken, updateProfile);
+router.delete("/profile", verifyToken, deleteOwnAccount);
 
 // Admin-only routes (admins login separately)
-router.get("/", verifyToken, requireRole('admin'), getUsers);
-router.get("/:id", verifyToken, requireRole('admin'), getUser);
-router.put("/:id", verifyToken, requireRole('admin'), updateUser);
-router.delete("/:id", verifyToken, requireRole('admin'), deleteUser);
+router.get("/", verifyToken, requireRole('admin', 'super_admin'), getUsers);
+router.get("/:id", verifyToken, requireRole('admin', 'super_admin'), getUser);
+router.put("/:id", verifyToken, requireRole('admin', 'super_admin'), updateUser);
+router.delete("/:id", verifyToken, requireRole('admin', 'super_admin'), deleteUser);
 
-// src/routes/userRoutes.js
+// Admin-only suppliers list
 router.get("/suppliers", verifyToken, requireRole("admin"), getAllSuppliers);
 
+router.post("/google-login", googleLoginUser);
 
 export default router;

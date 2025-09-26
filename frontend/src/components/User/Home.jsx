@@ -15,6 +15,8 @@ import {
   FaStar
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import Navbar from "../User/UserNavbar";
+import Footer from "../User/UserFooter";
 
 // Your existing image imports
 import laptopImg from "../../assets/categories/laptop.jpg";
@@ -100,81 +102,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Navbar */}
-      <header className={`bg-gradient-to-r from-blue-900 to-blue-800 shadow-lg sticky top-0 z-50 transition-all duration-300 ${scrollPosition > 50 ? 'py-2' : 'py-4'} border-b border-blue-700`}>
-        <div className="container mx-auto flex items-center justify-between px-6">
-          {/* Logo and Brand Name - Removed circle and made logo bigger */}
-          <Link to="/" className="flex items-center space-x-3">
-            <img
-              src={logoImg}
-              alt="ReBuy.lk Logo"
-              className="h-12 w-12 object-contain" // Increased size and removed rounded-full
-            />
-            <span className="text-white text-2xl font-bold tracking-wide">
-              ReBuy.lk
-            </span>
-          </Link>
-
-          {/* Navigation Links */}
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              Home
-            </Link>
-            <Link to="/productListing" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              Products
-            </Link>
-            <Link to="/ContactUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              Contact Us
-            </Link>
-            <Link to="/AboutUs" className="text-blue-200 hover:text-white text-lg font-medium transition-colors">
-              About Us
-            </Link>
-          </nav>
-
-          {/* Right side icons */}
-          <div className="flex items-center space-x-6">
-            <div className="hidden md:block text-blue-200 text-xl cursor-pointer hover:text-white transition-colors">
-              <FaShoppingCart />
-            </div>
-            <div className="text-blue-200 text-xl cursor-pointer hover:text-white transition-colors">
-              <FaUserCircle />
-            </div>
-            
-            {/* Mobile menu button */}
-            <button 
-              className="md:hidden text-blue-200 text-xl focus:outline-none"
-              onClick={toggleMenu}
-            >
-              {isMenuOpen ? <FaTimes /> : <FaBars />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-blue-800 px-6 py-4">
-            <div className="flex flex-col space-y-4">
-              <Link to="/" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                Home
-              </Link>
-              <Link to="/productListing" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                Products
-              </Link>
-              <Link to="/ContactUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                Contact Us
-              </Link>
-              <Link to="/AboutUs" className="text-blue-200 hover:text-white transition-colors" onClick={toggleMenu}>
-                About Us
-              </Link>
-              <div className="pt-4 border-t border-blue-700">
-                <Link to="/cart" className="text-blue-200 hover:text-white transition-colors flex items-center" onClick={toggleMenu}>
-                  <FaShoppingCart className="mr-2" /> Shopping Cart
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
+       <Navbar />
 
       {/* Hero Section with Background Image */}
       <section 
@@ -193,25 +121,20 @@ const HomePage = () => {
             Find the best deals on quality second-hand products from trusted sellers.
           </p>
 
-          {/* Search Bar */}
-          <div className="mt-8 max-w-2xl mx-auto relative">
-            <input
-              type="text"
-              placeholder="Search for products, brands, categories..."
-              className="w-full p-4 pl-5 pr-12 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 shadow-lg"
-            />
-            <button className="absolute right-2 top-2 bg-blue-700 text-white p-3 rounded-full hover:bg-blue-600 transition-colors">
-              <FaSearch />
-            </button>
-          </div>
-
           <div className="mt-10 flex flex-wrap gap-4 justify-center">
+          <div className="flex space-x-4">
+          <Link to="/productListing">
             <button className="bg-blue-700 text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 flex items-center">
               Explore Products <FaArrowRight className="ml-2" />
             </button>
+          </Link>
+
+          <Link to="/AboutUs">
             <button className="bg-white text-blue-800 px-8 py-4 rounded-full font-semibold shadow-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1">
-              Start Selling
+              About Us
             </button>
+          </Link>
+        </div>
           </div>
         </div>
         
@@ -223,7 +146,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Categories Section - White Background */}
+      {/*Shop By Categort */}
       <section className="container mx-auto px-6 py-16 bg-white">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Shop by Category</h2>
@@ -250,36 +173,14 @@ const HomePage = () => {
                 <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
                   {category.name}
                 </h3>
-                <button className="mt-3 text-blue-600 flex items-center justify-center w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  Browse <FaArrowRight className="ml-1 text-sm" />
-                </button>
+                <Link to="/productListing">
+                  <button className="mt-3 text-blue-600 flex items-center justify-center w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Browse <FaArrowRight className="ml-1 text-sm" />
+                  </button>
+                </Link>
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Stats Section - Blue Background */}
-      <section className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-16 border-y border-blue-700">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="p-6 transform hover:scale-105 transition-transform duration-300">
-              <h3 className="text-4xl font-bold mb-2">10,000+</h3>
-              <p className="text-blue-200">Happy Customers</p>
-            </div>
-            <div className="p-6 transform hover:scale-105 transition-transform duration-300">
-              <h3 className="text-4xl font-bold mb-2">5,000+</h3>
-              <p className="text-blue-200">Products Available</p>
-            </div>
-            <div className="p-6 transform hover:scale-105 transition-transform duration-300">
-              <h3 className="text-4xl font-bold mb-2">98%</h3>
-              <p className="text-blue-200">Satisfaction Rate</p>
-            </div>
-            <div className="p-6 transform hover:scale-105 transition-transform duration-300">
-              <h3 className="text-4xl font-bold mb-2">24/7</h3>
-              <p className="text-blue-200">Customer Support</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -345,97 +246,29 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section - Blue Background */}
+      {/*CTA Section - Blue Background*/}
       <section className="py-16 bg-gradient-to-r from-blue-800 to-blue-900">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Find Your Next Deal?</h2>
-          <p className="text-blue-200 max-w-2xl mx-auto mb-8">Join thousands of satisfied customers who have found great products at amazing prices</p>
+          <p className="text-blue-200 max-w-2xl mx-auto mb-8">
+            Join thousands of satisfied customers who have found great products at amazing prices
+          </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-white text-blue-800 px-8 py-4 rounded-full font-semibold shadow-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1">
-              Start Shopping Now
-            </button>
-            <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-blue-800 transition-all transform hover:-translate-y-1">
-              Become a Seller
-            </button>
+            <Link to="/productListing">
+              <button className="bg-white text-blue-800 px-8 py-4 rounded-full font-semibold shadow-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1">
+                Start Shopping Now
+              </button>
+            </Link>
+            <Link to="/UserLogin">
+              <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-blue-800 transition-all transform hover:-translate-y-1">
+                Become a Seller
+              </button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer - Blue Background */}
-      <footer className="bg-gradient-to-b from-blue-900 to-blue-950 text-white">
-        <div className="container mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand section */}
-          <div className="md:col-span-1">
-            <div className="flex items-center space-x-3 mb-4">
-              <img
-                src={logoImg}
-                alt="ReBuy.lk Logo"
-                className="h-12 w-12 object-contain" // Removed circular border
-              />
-              <span className="text-2xl font-bold">ReBuy.lk</span>
-            </div>
-            <p className="text-blue-300 mb-4">
-              Your trusted marketplace for second-hand goods. Buy, sell, and save!
-            </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-blue-300 hover:text-white transition-colors">
-                <FaFacebook size={20} />
-              </a>
-              <a href="#" className="text-blue-300 hover:text-white transition-colors">
-                <FaInstagram size={20} />
-              </a>
-              <a href="#" className="text-blue-300 hover:text-white transition-colors">
-                <FaTwitter size={20} />
-              </a>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><Link to="/" className="text-blue-300 hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/productListing" className="text-blue-300 hover:text-white transition-colors">Products</Link></li>
-              <li><Link to="/ContactUs" className="text-blue-300 hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link to="/AboutUs" className="text-blue-300 hover:text-white transition-colors">About Us</Link></li>
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Categories</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Laptops & Computers</a></li>
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Mobile Phones</a></li>
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Televisions</a></li>
-              <li><a href="#" className="text-blue-300 hover:text-white transition-colors">Other Electronics</a></li>
-            </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Newsletter</h3>
-            <p className="text-blue-300 mb-4">Subscribe to get updates on new products and promotions</p>
-            <div className="flex">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                className="bg-blue-800 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-400 w-full"
-              />
-              <button className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-r-lg transition-colors">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="border-t border-blue-800">
-          <div className="container mx-auto px-6 py-4 text-center text-blue-400 text-sm">
-            © {new Date().getFullYear()} ReBuy.lk. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Add some custom styles for animations */}
       <style>

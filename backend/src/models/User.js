@@ -14,55 +14,91 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [
-        /^\S+@\S+\.\S+$/,
-        "Please provide a valid email address"
-      ]
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"]
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        return !this.googleId; // required only if not Google login
+      },
       minlength: [6, "Password must be at least 6 characters long"]
     },
     role: {
       type: String,
-      enum: ["buyer", "supplier"], 
-      default: "buyer",
+      enum: ["buyer", "supplier"],
+      default: "buyer"
     },
 
-    // Supplier specific fields
-    company: {
+    address: {
       type: String,
       required: function () {
-        return this.role === "supplier";
+        return !this.googleId;
       },
       trim: true,
-      maxlength: [100, "Company name cannot exceed 100 characters"]
+      maxlength: [200, "Address cannot exceed 200 characters"]
     },
+    city: {
+      type: String,
+      required: function () {
+        return !this.googleId;
+      },
+      trim: true,
+      maxlength: [50, "City cannot exceed 50 characters"]
+    },
+    country: {
+      type: String,
+      required: function () {
+        return !this.googleId;
+      },
+      trim: true,
+      maxlength: [50, "Country cannot exceed 50 characters"]
+    },
+
+    postalCode: {
+      type: String,
+      required: function () {
+        return this.role === "buyer" && !this.googleId;
+      },
+      trim: true,
+      maxlength: [10, "Postal code cannot exceed 10 characters"]
+    },
+
     phone: {
       type: String,
       required: function () {
-        return this.role === "supplier";
+        return this.role === "supplier" && !this.googleId;
       },
       trim: true,
       match: [
         /^(?:\+94|0)?7\d{8}$/,
         "Please provide a valid Sri Lankan phone number"
       ]
+    },
+    company: {
+      type: String,
+      required: function () {
+        return this.role === "supplier" && !this.googleId;
+      },
+      trim: true,
+      maxlength: [100, "Company name cannot exceed 100 characters"]
+    },
+
+    googleId: {
+      type: String,
+      trim: true
     }
   },
   {
     timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
-        delete ret.password; // never return password in API response
+        delete ret.password;
         return ret;
       }
     }
   }
 );
 
-// Index for faster queries
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 

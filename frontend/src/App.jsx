@@ -1,5 +1,7 @@
 import React from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Admin components
 import AdminLogin from "./components/AdminLogin.jsx";
@@ -11,7 +13,7 @@ import ProductTable from "./components/product/products.jsx";
 import AddProductForm from "./components/product/addProduct.jsx";
 import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
 import FinancePage from "./components/finance/finance.jsx";
-
+import AllUsers from "./components/users.jsx";
 
 // User components
 import ProductListing from "./components/User/productListing.jsx";
@@ -21,8 +23,11 @@ import ContactUs from "./components/User/Contact.jsx";
 import UserLogin from "./components/User/UserLogin.jsx";
 import Register from "./components/User/UserRegistration.jsx"; 
 import BuyerDashboard from "./components/User/BuyerDashboard.jsx";
-import SupplierDashboard from "./components/User/SupplierDashboard.jsx";
+import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashboard.jsx";
+import AddSuplierOffer from "./components/User/SupplierDashboard/AddSupplierOffer.jsx";
+import SupplierOfferList from "./components/User/SupplierDashboard/SupplierOfferList.jsx";
 import FeedbackPage from "./components/User/feedback.jsx";
+import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -56,6 +61,8 @@ function App() {
     "/UserLogin",
     "/BuyerDashboard",
     "/SupplierDashboard",
+    "/AddSupplierOffer",
+    "/SupplierOfferList",
     "/FeedbackPage",
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
@@ -76,12 +83,14 @@ function App() {
             {/* Public Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/UserLogin" element={<UserLogin />} />
-            <Route path="/register" element={<Register />} /> {/* Registration route */}
+            <Route path="/register" element={<Register />} />
             <Route path="/productListing" element={<ProductListing />} />
             <Route path="/HomePage" element={<HomePage />} />
             <Route path="/AboutUs" element={<AboutUs />} />
             <Route path="/ContactUs" element={<ContactUs />} />
             <Route path="/FeedbackPage" element={<FeedbackPage />} />
+            <Route path="/AddSupplierOffer" element={<AddSuplierOffer />} />
+            <Route path="/SupplierOfferList" element={<SupplierOfferList />} />
 
             {/* Buyer & Supplier Dashboards */}
             <Route
@@ -114,7 +123,7 @@ function App() {
               path="/users"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Users Page</h2>
+                  <AllUsers /> 
                 </AdminPrivateRoute>
               }
             />
@@ -186,7 +195,7 @@ function App() {
               path="/feedback"
               element={
                 <AdminPrivateRoute>
-                   <h2 className="text-2xl font-bold">Delivery Page</h2>
+                  <AdminFeedbackPage/>
                 </AdminPrivateRoute>
               }
             />
@@ -199,6 +208,19 @@ function App() {
         {/* Footer for admin pages only */}
         {!isNoAdminLayout && <Footer />}
       </div>
+
+      {/* Toast container for all pages */}
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }
