@@ -27,6 +27,7 @@ import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashb
 import AddSuplierOffer from "./components/User/SupplierDashboard/AddSupplierOffer.jsx";
 import SupplierOfferList from "./components/User/SupplierDashboard/SupplierOfferList.jsx";
 import FeedbackPage from "./components/User/feedback.jsx";
+import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -194,7 +195,7 @@ function App() {
               path="/feedback"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Feedback Page</h2>
+                  <AdminFeedbackPage/>
                 </AdminPrivateRoute>
               }
             />

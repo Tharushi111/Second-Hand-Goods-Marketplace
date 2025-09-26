@@ -22,7 +22,10 @@ export default function FeedbackPage() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null); 
-  const [editForm, setEditForm] = useState({ name: "", rating: 5, comment: "" });
+  const [editForm, setEditForm] = useState({ name: "", rating: 5, comment: "", email: "" });
+
+  // Replace this with your actual logged-in user email
+  const currentUserEmail = "user@example.com"; 
 
   // Fetch feedbacks
   useEffect(() => {
@@ -36,24 +39,34 @@ export default function FeedbackPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await axios.post("http://localhost:5001/api/feedback", form);
+      const res = await axios.post("http://localhost:5001/api/feedback", {
+        ...form,
+        email: currentUserEmail // Include email when submitting
+      });
       setFeedbacks([res.data, ...feedbacks]);
       setForm({ name: "", rating: 5, comment: "" });
-      setTimeout(() => setIsSubmitting(false), 1000);
+      setTimeout(() => setIsSubmitting(false), 500);
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);
     }
   };
 
-  // Handle feedback update
+  // Handle feedback update (only owner can edit)
   const handleUpdate = async (id) => {
     try {
-      const res = await axios.put(`http://localhost:5001/api/feedback/${id}`, editForm);
+      const res = await axios.put(`http://localhost:5001/api/feedback/${id}`, {
+        ...editForm,
+        email: currentUserEmail
+      });
       setFeedbacks(feedbacks.map(f => f._id === id ? res.data : f));
       setEditingId(null);
     } catch (err) {
-      console.error(err);
+      if (err.response && err.response.status === 403) {
+        alert("You can only edit your own feedback");
+      } else {
+        console.error(err);
+      }
     }
   };
 
@@ -66,9 +79,7 @@ export default function FeedbackPage() {
           type={editable ? "button" : "span"}
           onClick={editable ? () => onChange(star) : undefined}
           className={`${size} transition-all duration-200 ${
-            star <= rating 
-              ? "text-yellow-400 drop-shadow-lg" 
-              : "text-gray-300"
+            star <= rating ? "text-yellow-400 drop-shadow-lg" : "text-gray-300"
           } ${editable ? "hover:scale-125 transform hover:text-yellow-300" : ""}`}
         >
           ★
@@ -222,12 +233,7 @@ export default function FeedbackPage() {
           </motion.div>
 
           {/* Feedback List */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-6 mb-12"
-          >
+          <motion.div className="space-y-6 mb-12">
             {feedbacks.map((feedback, index) => (
               <motion.div
                 key={feedback._id}
@@ -297,11 +303,16 @@ export default function FeedbackPage() {
                     ) : (
                       <motion.button 
                         onClick={() => {
+                          if (feedback.email !== currentUserEmail) {
+                            alert("You can only edit your own feedback");
+                            return;
+                          }
                           setEditingId(feedback._id);
                           setEditForm({
                             name: feedback.name,
                             rating: parseInt(feedback.rating),
-                            comment: feedback.comment
+                            comment: feedback.comment,
+                            email: feedback.email
                           });
                         }}
                         whileHover={{ scale: 1.05 }}
