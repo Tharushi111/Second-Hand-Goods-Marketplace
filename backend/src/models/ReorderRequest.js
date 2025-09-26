@@ -16,9 +16,10 @@ const reorderRequestSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, "Category is required"],
-    enum: ["Laptops", "Mobile Phones", "Televisions", "Accessories", "Other"],
-    trim: true
-  },
+    trim: true,
+    minlength: [2, "Category must be at least 2 characters"],
+    maxlength: [50, "Category cannot exceed 50 characters"]
+  },  
   priority: {
     type: String,
     enum: ["Low", "Normal", "High"],

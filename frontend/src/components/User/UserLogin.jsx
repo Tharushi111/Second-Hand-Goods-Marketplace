@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Eye, EyeOff, Mail, Lock, Loader, User, ArrowRight } from "lucide-react";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -38,10 +39,7 @@ const UserLogin = () => {
       localStorage.setItem("role", data.role);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      toast.success(`Welcome back! Redirecting to ${data.role} dashboard...`, {
-        position: "top-center",
-        duration: 2000,
-      });
+      toast.success(`Welcome back! Redirecting to ${data.role} dashboard...`);
 
       setTimeout(() => {
         navigate(data.role === "supplier" ? "/SupplierDashboard" : "/BuyerDashboard");
@@ -56,7 +54,7 @@ const UserLogin = () => {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // ---------------- GOOGLE LOGIN ----------------
+  // GOOGLE LOGIN 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
@@ -72,10 +70,7 @@ const UserLogin = () => {
       localStorage.setItem("role", data.role);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      toast.success(`Welcome ${data.user.username}! Redirecting...`, {
-        position: "top-center",
-        duration: 2000,
-      });
+      toast.success(`Welcome ${data.user.username}! Redirecting...`);
 
       setTimeout(() => {
         navigate(data.role === "supplier" ? "/SupplierDashboard" : "/BuyerDashboard");
@@ -90,24 +85,12 @@ const UserLogin = () => {
     toast.error("Google login failed. Please try again.", { position: "top-center" });
   };
 
-  // ------------------------------------------------
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100">
       <Navbar />
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#1e40af",
-            color: "#fff",
-            borderRadius: "12px",
-            fontWeight: "500",
-          },
-        }}
-      />
-
+      
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden -z-10">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>

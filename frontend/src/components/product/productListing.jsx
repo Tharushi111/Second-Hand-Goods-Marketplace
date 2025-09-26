@@ -13,7 +13,7 @@ import {
   FaPlus,
   FaMinus
 } from "react-icons/fa";
-import { toast, Toaster } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
 
 const ProductListing = () => {
   const [products, setProducts] = useState([]);

@@ -1,18 +1,22 @@
 import express from "express";
 import { addFeedback, getFeedbacks, updateFeedback, deleteFeedback } from "../controllers/feedbackController.js";
+import { verifyToken, requireRole } from "../middleware/auth.js";
+import { verifyAdminToken, requireAdminRole } from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
-//Add new feedback
-router.post("/", addFeedback);
+// Add new feedback (only logged-in users)
+router.post("/", verifyToken, addFeedback);
 
-//Get all feedback
+// Get all feedback (public)
 router.get("/", getFeedbacks);
 
-//Update feedback by id
-router.put("/:id", updateFeedback);
+// Update feedback by id (only logged-in users)
+router.put("/:id", verifyToken, updateFeedback);
 
-//delete feedback
-router.delete("/:id", deleteFeedback);
+// Delete feedback (only admin)
+router.delete("/:id", verifyAdminToken, requireAdminRole('admin', 'super_admin'), deleteFeedback);
 
 export default router;
+
+

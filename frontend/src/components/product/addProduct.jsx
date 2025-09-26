@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaBox, FaTag, FaDollarSign, FaAlignLeft } from "react-icons/fa";
 
@@ -78,16 +78,6 @@ export default function AddProductForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex items-center justify-center">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: { borderRadius: "8px", padding: "16px", color: "#fff", fontWeight: "bold" },
-          success: { style: { background: "green" } },
-          error: { style: { background: "red" } },
-        }}
-      />
-
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <button

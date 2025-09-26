@@ -212,7 +212,8 @@ function App() {
       {/* Toast container for all pages */}
       <ToastContainer
         position="top-center"
-        autoClose={3000}
+        autoClose={1000}
+        toastStyle={{ fontFamily: "'Open Sans', sans-serif", fontSize: '16px' }}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

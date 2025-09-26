@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
 import {
   FaArrowLeft,
@@ -22,13 +23,13 @@ const UpdateProduct = () => {
   const [product, setProduct] = useState({
     name: "",
     category: "",
-    quantity: 0,
-    unitPrice: 0,
-    reorderLevel: 0,
+    quantity: "", 
+    unitPrice: "",
+    reorderLevel: "",
     description: "",
-    supplier: "", // this will store supplier ID
+    supplier: "",
   });
-
+  
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +38,7 @@ const UpdateProduct = () => {
     const fetchData = async () => {
       const token = localStorage.getItem("adminToken");
       if (!token) {
-        toast.error("Unauthorized: Please log in again", { position: "top-center" });
+        toast.error("Unauthorized: Please log in again");
         navigate("/admin/login");
         return;
       }
@@ -52,7 +53,6 @@ const UpdateProduct = () => {
           }),
         ]);
 
-        // Ensure all fields are defined to avoid controlled/uncontrolled warnings
         setProduct({
           name: productRes.data.name || "",
           category: productRes.data.category || "",
@@ -66,10 +66,7 @@ const UpdateProduct = () => {
         setSuppliers(suppliersRes.data || []);
       } catch (err) {
         console.error("Fetch error:", err.response?.data || err.message);
-        toast.error(err.response?.data?.message || "Failed to load product or suppliers", {
-          position: "top-center",
-        });
-
+        toast.error(err.response?.data?.message || "Failed to load product or suppliers");
         if (err.response?.status === 401) {
           localStorage.removeItem("adminToken");
           navigate("/admin/login");
@@ -86,8 +83,14 @@ const UpdateProduct = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProduct({ ...product, [name]: value });
+  
+    if (name === "quantity") {
+      setProduct({ ...product, [name]: value === "" ? "" : Number(value) });
+    } else {
+      setProduct({ ...product, [name]: value });
+    }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,8 +98,9 @@ const UpdateProduct = () => {
 
     const token = localStorage.getItem("adminToken");
     if (!token) {
-      toast.error("Unauthorized: Please log in again", { position: "top-center" });
+      toast.error("Unauthorized: Please log in again");
       navigate("/admin/login");
+      setSubmitting(false);
       return;
     }
 
@@ -106,16 +110,17 @@ const UpdateProduct = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Show success toast first
-      toast.success("Product updated successfully", { position: "top-center" });
-
-      // Delay navigation so toast is visible
-      setTimeout(() => {
-        navigate("/inventory/products");
-      }, 1000);
+      // Show success toast and navigate after it closes
+      toast.success("Product updated successfully!", {
+        position: "top-center",
+        autoClose: 1000,
+        onClose: () => navigate("/inventory/products"),
+      });
     } catch (err) {
       console.error("Update error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.message || "Failed to update product", { position: "top-center" });
+      toast.error(err.response?.data?.message || "Failed to update product", {
+        position: "top-center",
+      });
 
       if (err.response?.status === 401) {
         localStorage.removeItem("adminToken");
@@ -138,7 +143,7 @@ const UpdateProduct = () => {
 
   return (
     <div className="min-h-screen bg-white py-8 px-4">
-      <Toaster position="top-center" />
+      <ToastContainer />
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -206,6 +211,11 @@ const UpdateProduct = () => {
                     name="quantity"
                     value={product.quantity}
                     onChange={handleChange}
+                    onKeyDown={(e) => {
+                      if (["e", "E", "+", "-"].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     placeholder="0"
                     min="0"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
@@ -257,7 +267,9 @@ const UpdateProduct = () => {
                 <Select
                   options={supplierOptions}
                   value={supplierOptions.find((s) => s.value === product.supplier)}
-                  onChange={(selected) => setProduct({ ...product, supplier: selected.value })}
+                  onChange={(selected) =>
+                    setProduct({ ...product, supplier: selected ? selected.value : "" })
+                  }
                   styles={{
                     control: (base) => ({ ...base, backgroundColor: "white", color: "black" }),
                     singleValue: (base) => ({ ...base, color: "black" }),

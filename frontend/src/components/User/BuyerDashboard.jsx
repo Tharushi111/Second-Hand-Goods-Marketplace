@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../User/UserNavbar";
 import Footer from "../User/UserFooter";
@@ -83,7 +84,7 @@ const handleDeleteAccount = async () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Toaster position="top-center" />
+
 
       <Navbar />
 

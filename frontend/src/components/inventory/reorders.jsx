@@ -15,7 +15,7 @@ import {
   faSearch,
   faFilter,
 } from "@fortawesome/free-solid-svg-icons";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";

@@ -70,7 +70,7 @@ export const getProducts = async (req, res) => {
 // Get product by ID
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("stock");
+    const product = await Product.findById(req.params.id).populate("stock","name");
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
   } catch (err) {

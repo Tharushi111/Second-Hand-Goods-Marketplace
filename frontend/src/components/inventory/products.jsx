@@ -11,7 +11,7 @@ import {
   faDownload,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-toastify";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoImg from "../../assets/ReBuyLogo.png";
@@ -76,14 +76,14 @@ const StockProducts = () => {
     if (!confirmDelete) return;
   
     try {
-      console.log("Deleting stock:", id, name); // Debug
+      console.log("Deleting stock:", id, name); 
       await axios.delete(`http://localhost:5001/api/admin/auth/stocks/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
       setStocks((prev) => prev.filter((s) => s._id !== id));
   
-      console.log("Stock deleted, showing toast"); // Debug
+      console.log("Stock deleted, showing toast"); 
       toast.success(`"${name}" deleted successfully`, { position: "top-center" });
     } catch (err) {
       console.error(err.response?.data || err.message);
