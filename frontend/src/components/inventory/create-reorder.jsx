@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBoxes, faPaperPlane, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import toast from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function ReorderRequestForm({ onSubmit }) {
   const [form, setForm] = useState({
@@ -25,7 +26,11 @@ function ReorderRequestForm({ onSubmit }) {
 
     if (!form.title.trim()) newErrors.title = "Title is required";
     if (!form.quantity || form.quantity <= 0) newErrors.quantity = "Quantity must be greater than 0";
-    if (!form.category) newErrors.category = "Category is required";
+    if (!form.category.trim()) {
+      newErrors.category = "Category is required";
+    } else if (form.category.trim().length < 2) {
+      newErrors.category = "Category must be at least 2 characters";
+    }    
     if (!form.description.trim()) newErrors.description = "Description is required";
 
     setErrors(newErrors);
@@ -44,9 +49,10 @@ function ReorderRequestForm({ onSubmit }) {
         await onSubmit(form);
       }
 
-      toast.success("Reorder request created successfully", {
-        position: "top-center", 
+      toast.success("Reorder request created successfully!", {
+        position: "top-center",
       });
+
       setForm({
         title: "",
         quantity: "",
@@ -55,9 +61,9 @@ function ReorderRequestForm({ onSubmit }) {
         description: ""
       });
     } catch (err) {
-        toast.error(err?.message || "Failed to create reorder request", {
-            position: "top-center", 
-        });
+      toast.error(err?.response?.data?.message || "Failed to create reorder request", {
+        position: "top-center",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -99,16 +105,17 @@ function ReorderRequestForm({ onSubmit }) {
 
           {/* Quantity & Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+
+            {/* Quantity Field */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Quantity <span className="text-red-500">*</span>
               </label>
               <input
-                type="text" 
+                type="text"
                 name="quantity"
                 value={form.quantity}
                 onChange={(e) => {
-                  
                   const numbersOnly = e.target.value.replace(/[^0-9]/g, "");
                   handleChange({ target: { name: "quantity", value: numbersOnly } });
                 }}
@@ -120,27 +127,26 @@ function ReorderRequestForm({ onSubmit }) {
               {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
             </div>
 
-
+            {/* Category Field - Changed to Text Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Category <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className={`w-full pl-4 pr-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-200 appearance-none ${errors.category ? "border-red-500" : "border-gray-300"} ${form.category === "" ? "text-gray-400" : "text-black"}`}
-              >
-                <option value="" className="text-gray-700">Select Category</option>
-                <option value="Laptops">Laptops</option>
-                <option value="Mobile Phones">Mobile Phones</option>
-                <option value="Televisions">Televisions</option>
-                <option value="Accessories">Accessories</option>
-                <option value="Other">Other</option>
-              </select>
+                placeholder="Ex: Laptops, Gaming Consoles, Headphones"
+                className={`w-full pl-4 pr-4 py-3 border rounded-lg bg-white text-black focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-200 ${
+                  errors.category ? "border-red-500" : "border-gray-300"
+                }`}
+              />
               {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
             </div>
+            
           </div>
+
 
           {/* Priority */}
           <div>
