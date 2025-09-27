@@ -74,20 +74,26 @@ const ReorderRequests = () => {
   };
 
   const handleDelete = async (orderId, title) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
-      try {
-        await axios.delete(`http://localhost:5001/api/reorders/${orderId}`);
-        setReorders((prev) => prev.filter((r) => r._id !== orderId));
-        toast.success(`"${title}" deleted successfully`, {
-          position: "top-center",
-        });
-      } catch (err) {
-        console.error(err);
-        toast.error(`Failed to delete "${title}"`, { position: "top-center" });
-      }
+    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+  
+    try {
+      await axios.delete(`http://localhost:5001/api/reorders/${orderId}`);
+      
+      // Show toast immediately
+      toast.success(`"${title}" deleted successfully`, { position: "top-center" });
+  
+      // Update local state
+      setReorders((prev) => prev.filter((r) => r._id !== orderId));
+  
+      // Optional: navigate after a short delay if needed
+       setTimeout(() => navigate("/inventory/create-reorder"), 300);
+    } catch (err) {
+      console.error(err);
+      toast.error(`Failed to delete "${title}"`, { position: "top-center" });
     }
   };
-
+  
+  
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedOrder(null);

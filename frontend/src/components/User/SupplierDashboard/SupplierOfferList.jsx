@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import {
   FaEdit,
@@ -25,7 +26,7 @@ export default function SupplierOfferList() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const navigate = useNavigate();
 
-  // === Edit Modal State ===
+  // Edit Modal State
   const [showModal, setShowModal] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ export default function SupplierOfferList() {
     deliveryDate: "",
   });
 
-  // === Decode JWT to get supplier ID ===
+  // Decode JWT to get supplier ID 
   const getSupplierIdFromToken = () => {
     try {
       const token = localStorage.getItem("token");
@@ -50,7 +51,7 @@ export default function SupplierOfferList() {
 
   const supplierId = getSupplierIdFromToken();
 
-  // === Fetch offers ===
+  // Fetch offers
   const fetchOffers = async () => {
     if (!supplierId) {
       toast.error("You must be logged in as a supplier.");
@@ -90,7 +91,7 @@ export default function SupplierOfferList() {
     fetchOffers();
   }, []);
 
-  // === Handle Delete ===
+  //Handle Delete
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
@@ -106,7 +107,7 @@ export default function SupplierOfferList() {
     }
   };
 
-  // === Handle Open Edit Modal ===
+  // Handle Open Edit Modal
   const handleEdit = (offer) => {
     setSelectedOffer(offer._id);
     setFormData({
@@ -119,7 +120,7 @@ export default function SupplierOfferList() {
     setShowModal(true);
   };
 
-  // === Handle Update Offer ===
+  // Handle Update Offer
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -142,12 +143,12 @@ export default function SupplierOfferList() {
     }
   };
 
-  // === Handle Create Offer Redirect ===
+  // Handle Create Offer Redirect
   const handleCreateOffer = () => {
     navigate("/AddSupplierOffer");
   };
 
-  // === Handle Sorting ===
+  // Handle Sorting
   const handleSort = (key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -156,7 +157,7 @@ export default function SupplierOfferList() {
     setSortConfig({ key, direction });
   };
 
-  // === Filter and sort offers ===
+  // Filter and sort offers
   const filteredAndSortedOffers = React.useMemo(() => {
     let filtered = offers.filter(offer => {
       const matchesSearch = offer.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -180,7 +181,7 @@ export default function SupplierOfferList() {
     return filtered;
   }, [offers, searchTerm, statusFilter, sortConfig]);
 
-  // === Get status counts ===
+  // Get status counts
   const statusCounts = {
     All: offers.length,
     Pending: offers.filter(o => o.status === "Pending").length,
@@ -188,7 +189,7 @@ export default function SupplierOfferList() {
     Rejected: offers.filter(o => o.status === "Rejected").length,
   };
 
-  // === Sort icon component ===
+  //Sort icon component
   const SortIcon = ({ columnKey }) => {
     if (sortConfig.key !== columnKey) {
       return <FaSort className="text-blue-300 ml-1" />;
@@ -200,8 +201,7 @@ export default function SupplierOfferList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 lg:p-8">
-      <Toaster position="top-center" />
-
+      
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8">
@@ -457,7 +457,7 @@ export default function SupplierOfferList() {
         )}
       </div>
 
-      {/* ===== Update Offer Modal ===== */}
+      {/*Update Offer Modal*/}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">

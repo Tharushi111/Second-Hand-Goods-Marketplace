@@ -9,7 +9,8 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  Title
+  Title,
+  Filler
 } from "chart.js";
 import {
   FaWarehouse,
@@ -44,7 +45,8 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  Title
+  Title,
+  Filler
 );
 
 const InventoryDashboard = () => {

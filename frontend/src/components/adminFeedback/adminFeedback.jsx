@@ -16,15 +16,32 @@ export default function AdminFeedbackPage() {
 
   const fetchFeedbacks = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/feedback");
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
+        toast.error("Admin token not found. Please log in again.", {
+          position: "top-center",
+        });
+        return;
+      }
+  
+      const res = await axios.get("http://localhost:5001/api/feedback", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setFeedbacks(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching feedbacks:", err.response || err.message);
+      toast.error("Failed to fetch feedback. Please try again later.", {
+        position: "top-center",
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
+  
+  
 
   // Manual refresh function
   const handleRefresh = () => {
