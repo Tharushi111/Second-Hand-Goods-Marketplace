@@ -16,6 +16,7 @@ import FinancePage from "./components/finance/finance.jsx";
 import AllUsers from "./components/users.jsx";
 import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
 import SupplierPage from "./components/supplier/supplier.jsx";
+import AdminOrders from "./components/order/AdminOrders.jsx";
 
 
 // User components
@@ -30,6 +31,10 @@ import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashb
 import AddSuplierOffer from "./components/User/SupplierDashboard/AddSupplierOffer.jsx";
 import SupplierOfferList from "./components/User/SupplierDashboard/SupplierOfferList.jsx";
 import FeedbackPage from "./components/User/feedback.jsx";
+import Cart from "./components/order/cart.jsx";
+import Checkout from "./components/order/Checkout.jsx";
+import OrderConfirmation from "./components/order/OrderConfirmation.jsx";
+import OrderHistory from "./components/order/OrderHistory.jsx";
 
 
 // PrivateRoute for admin
@@ -67,6 +72,11 @@ function App() {
     "/AddSupplierOffer",
     "/SupplierOfferList",
     "/FeedbackPage",
+    "/cart",
+    "/checkout",
+    "/order-confirmation",
+    "/order-history"
+
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
@@ -94,6 +104,10 @@ function App() {
             <Route path="/FeedbackPage" element={<FeedbackPage />} />
             <Route path="/AddSupplierOffer" element={<AddSuplierOffer />} />
             <Route path="/SupplierOfferList" element={<SupplierOfferList />} />
+            <Route path="/cart" element={<Cart/>}/>
+            <Route path="/checkout" element={<Checkout/>}/>
+            <Route path="/order-confirmation" element={<OrderConfirmation />} />
+            <Route path="/order-history" element={<OrderHistory />} />
 
             {/* Buyer & Supplier Dashboards */}
             <Route
@@ -134,7 +148,7 @@ function App() {
               path="/orders"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Orders Page</h2>
+                  <AdminOrders />
                 </AdminPrivateRoute>
               }
             />
