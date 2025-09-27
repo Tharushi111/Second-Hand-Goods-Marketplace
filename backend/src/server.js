@@ -10,6 +10,9 @@ import userRoutes from "./routes/userRoutes.js";
 import financeRoutes from "./routes/financeRoutes.js"
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import supplierOffer from "./routes/supplierOfferRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import checkoutRoutes from "./routes/checkoutRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 import multer from "multer"; 
 
 dotenv.config();
@@ -30,6 +33,9 @@ app.use("/api/user", userRoutes);
 app.use("/api/finance", financeRoutes)
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/offer", supplierOffer);
+app.use("/api/cart", cartRoutes);
+app.use("/api/checkout", checkoutRoutes);
+app.use("/api/orders", orderRoutes); 
 
 
 // Connect to MongoDB and start server
