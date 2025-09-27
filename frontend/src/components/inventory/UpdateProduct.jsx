@@ -23,13 +23,13 @@ const UpdateProduct = () => {
   const [product, setProduct] = useState({
     name: "",
     category: "",
-    quantity: "", 
+    quantity: "",
     unitPrice: "",
     reorderLevel: "",
     description: "",
     supplier: "",
   });
-  
+
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -79,18 +79,19 @@ const UpdateProduct = () => {
     fetchData();
   }, [id, navigate]);
 
-  const supplierOptions = suppliers.map((s) => ({ value: s._id, label: s.name }));
+  // Prepare options for React Select
+  const supplierOptions = suppliers.map((s) => ({ value: s._id, label: s.username }));
+
+  // Get the selected supplier object for React Select
+  const selectedSupplier = supplierOptions.find((s) => s.value === product.supplier) || null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
-    if (name === "quantity") {
-      setProduct({ ...product, [name]: value === "" ? "" : Number(value) });
-    } else {
-      setProduct({ ...product, [name]: value });
-    }
+    setProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -110,7 +111,6 @@ const UpdateProduct = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Show success toast and navigate after it closes
       toast.success("Product updated successfully!", {
         position: "top-center",
         autoClose: 1000,
@@ -212,9 +212,7 @@ const UpdateProduct = () => {
                     value={product.quantity}
                     onChange={handleChange}
                     onKeyDown={(e) => {
-                      if (["e", "E", "+", "-"].includes(e.key)) {
-                        e.preventDefault();
-                      }
+                      if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
                     }}
                     placeholder="0"
                     min="0"
@@ -253,7 +251,7 @@ const UpdateProduct = () => {
                   onChange={handleChange}
                   placeholder="0.00"
                   min="0"
-                  step="0.01"
+                  step="any"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   required
                 />
@@ -266,12 +264,13 @@ const UpdateProduct = () => {
                 </label>
                 <Select
                   options={supplierOptions}
-                  value={supplierOptions.find((s) => s.value === product.supplier)}
+                  value={selectedSupplier} // <-- FIX: full object {value,label}
                   onChange={(selected) =>
-                    setProduct({ ...product, supplier: selected ? selected.value : "" })
+                    setProduct((prev) => ({ ...prev, supplier: selected ? selected.value : "" }))
                   }
+                  isClearable
                   styles={{
-                    control: (base) => ({ ...base, backgroundColor: "white", color: "black" }),
+                    control: (base) => ({ ...base, backgroundColor: "white" }),
                     singleValue: (base) => ({ ...base, color: "black" }),
                     menu: (base) => ({ ...base, backgroundColor: "white" }),
                     option: (base, { isSelected, isFocused }) => ({
@@ -280,8 +279,6 @@ const UpdateProduct = () => {
                       color: isSelected ? "white" : "black",
                     }),
                   }}
-                  placeholder="Select Supplier"
-                  isClearable
                 />
               </div>
 

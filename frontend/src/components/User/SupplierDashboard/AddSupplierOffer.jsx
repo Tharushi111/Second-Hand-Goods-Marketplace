@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -58,7 +59,7 @@ export default function AddSupplierOffer() {
       );
 
       toast.success("Offer submitted successfully!", {
-        duration: 2000, 
+        duration: 1000, 
         onClose: () => navigate("/SupplierDashboard") 
       });
 
@@ -81,8 +82,7 @@ export default function AddSupplierOffer() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col">
-      <Toaster />
-
+      
       {/* Navbar - Fixed at top */}
       <nav className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

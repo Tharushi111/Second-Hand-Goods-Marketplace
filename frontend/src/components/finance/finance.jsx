@@ -12,7 +12,8 @@ import {
   BarElement,
   LineElement,
   PointElement,
-  Title
+  Title,
+  Filler
 } from "chart.js";
 import {
   FaMoneyBillWave,
@@ -52,7 +53,8 @@ ChartJS.register(
   BarElement,
   LineElement,
   PointElement,
-  Title
+  Title,
+  Filler
 );
 
 export default function FinancePage() {

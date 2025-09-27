@@ -14,6 +14,9 @@ import AddProductForm from "./components/product/addProduct.jsx";
 import UpdateProductForm from "./components/product/UpdateProductForm.jsx";
 import FinancePage from "./components/finance/finance.jsx";
 import AllUsers from "./components/users.jsx";
+import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
+import SupplierPage from "./components/supplier/supplier.jsx";
+
 
 // User components
 import ProductListing from "./components/User/productListing.jsx";
@@ -27,7 +30,7 @@ import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashb
 import AddSuplierOffer from "./components/User/SupplierDashboard/AddSupplierOffer.jsx";
 import SupplierOfferList from "./components/User/SupplierDashboard/SupplierOfferList.jsx";
 import FeedbackPage from "./components/User/feedback.jsx";
-import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
+
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -168,10 +171,10 @@ function App() {
               }
             />
             <Route
-              path="/suppliers"
+              path="/suppliers/*"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Suppliers Page</h2>
+                  <SupplierPage />
                 </AdminPrivateRoute>
               }
             />
