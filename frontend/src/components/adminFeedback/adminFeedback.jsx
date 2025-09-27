@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { FaComment, FaStar, FaUser, FaCalendar, FaTrash, FaSync } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function AdminFeedbackPage() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -32,25 +33,29 @@ export default function AdminFeedbackPage() {
   };
 
   // Delete feedback with confirmation
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this feedback?"
-    );
-    if (!confirmDelete) return;
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this feedback?"
+  );
+  if (!confirmDelete) return;
 
-    try {
-      await axios.delete(`http://localhost:5001/api/feedback/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      });
-      setFeedbacks(feedbacks.filter((f) => f._id !== id));
-      alert("Feedback deleted successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed. Admin only!");
-    }
-  };
+  try {
+    await axios.delete(`http://localhost:5001/api/feedback/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+      },
+    });
+    setFeedbacks(feedbacks.filter((f) => f._id !== id));
+    toast.success("Feedback deleted successfully!", {
+      position: "top-center",
+    });
+  } catch (err) {
+    console.error(err);
+    toast.error("Delete failed. Admin only!", {
+      position: "top-center",
+    });
+  }
+};
 
   // Render star rating
   const renderStars = (rating) => {

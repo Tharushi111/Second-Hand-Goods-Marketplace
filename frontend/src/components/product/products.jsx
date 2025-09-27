@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { FaEye, FaEdit, FaTrash, FaFilePdf, FaPlus, FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
@@ -96,11 +96,11 @@ const downloadPDF = (product) => {
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(11);
 
-  // Name
+    // name
   doc.setFont(undefined, "bold");
   doc.text("Name:", margin + 5, currentY);
   doc.setFont(undefined, "normal");
-  doc.text(String(product?.name || ""), margin + 25, currentY);
+  doc.text(String(product?.stock?.name || ""), margin + 30, currentY); 
   currentY += 8;
 
   // Category
@@ -110,7 +110,8 @@ const downloadPDF = (product) => {
   doc.text(String(product?.category || ""), margin + 30, currentY);
   currentY += 8;
 
-  // Description (with text wrapping)
+
+  // Description
   doc.setFont(undefined, "bold");
   doc.text("Description:", margin + 5, currentY);
   doc.setFont(undefined, "normal");
@@ -153,7 +154,7 @@ const downloadPDF = (product) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <Toaster position="top-right" />
+      
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}

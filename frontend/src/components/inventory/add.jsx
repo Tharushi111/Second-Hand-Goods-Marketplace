@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AddStockForm = () => {
   const [name, setName] = useState("");
@@ -13,6 +14,8 @@ const AddStockForm = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const navigate = useNavigate(); // for redirect after success
 
   // Get admin token from localStorage
   const token = localStorage.getItem("adminToken");
@@ -46,6 +49,7 @@ const AddStockForm = () => {
     if (reorderLevel === "" || reorderLevel < 0) newErrors.reorderLevel = "Reorder Level must be 0 or more";
     if (unitPrice === "" || unitPrice < 0) newErrors.unitPrice = "Unit Price must be 0 or more";
     if (!supplierId) newErrors.supplierId = "Please select a supplier";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -53,10 +57,10 @@ const AddStockForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return toast.error("Please fix errors before submitting");
-
+  
     setLoading(true);
     try {
-      await axios.post(
+      const res = await axios.post(
         "http://localhost:5001/api/admin/auth/stocks/",
         {
           name,
@@ -69,9 +73,14 @@ const AddStockForm = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      toast.success("Stock added successfully");
-
+  
+      console.log("Response:", res.data); 
+  
+      toast.success("Stock added successfully!", {
+        position: "top-center",
+        autoClose: 1500,
+      });
+      
       // Reset form
       setName("");
       setCategory("");
@@ -88,10 +97,10 @@ const AddStockForm = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <Toaster position="top-center" />
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl space-y-4"
@@ -129,6 +138,13 @@ const AddStockForm = () => {
             type="number"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-"].includes(e.key)) {
+                e.preventDefault(); 
+              }
+            }}
+            placeholder="0"
+            min="0"
             className={`w-full p-2 border rounded ${errors.quantity ? "border-red-500" : "border-gray-300"}`}
           />
           {errors.quantity && <p className="text-red-500 text-sm">{errors.quantity}</p>}

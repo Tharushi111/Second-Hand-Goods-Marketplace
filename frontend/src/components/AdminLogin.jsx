@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { FaUserShield, FaLock, FaEnvelope, FaSignInAlt } from "react-icons/fa";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -30,16 +31,23 @@ const AdminLogin = () => {
           JSON.stringify({ username: res.data.username, email: res.data.email })
         );
 
-        toast.success("Login successful!", { position: "top-center" });
+        toast.success("Login successful!", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
         navigate("/"); // redirect to Home Page
       } else {
-        toast.error("Invalid login response", { position: "top-center" });
+        toast.error("Invalid login response");
       }
     } catch (err) {
       console.error(err);
       toast.error(
-        err.response?.data?.message || "Invalid email or password",
-        { position: "top-center" }
+        err.response?.data?.message || "Invalid email or password"
       );
     } finally {
       setLoading(false);
@@ -52,7 +60,7 @@ const AdminLogin = () => {
       {/* Main Content */}
       <main className="flex flex-1 items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-4xl flex flex-col md:flex-row">
-          {/* Left side - Illustration / Info */}
+          {/* Left side - Illustration */}
           <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-10 md:w-2/5 flex flex-col justify-center">
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
