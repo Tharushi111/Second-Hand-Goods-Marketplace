@@ -11,7 +11,7 @@ import {
   faDownload,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoImg from "../../assets/ReBuyLogo.png";
@@ -36,7 +36,7 @@ const StockProducts = () => {
         setStocks(res.data);
       } catch (err) {
         console.error(err);
-        toast.error("Failed to fetch stock products", { position: "top-center" });
+        toast.error("Failed to fetch stock products");
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ const StockProducts = () => {
     const token = localStorage.getItem("adminToken");
   
     if (!token) {
-      toast.error("Unauthorized: Please log in again", { position: "top-center" });
+      toast.error("Unauthorized: Please log in again");
       navigate("/admin/login");
       return;
     }
@@ -103,12 +103,10 @@ const StockProducts = () => {
       setStocks((prev) => prev.filter((s) => s._id !== id));
   
       console.log("Stock deleted, showing toast"); 
-      toast.success(`"${name}" deleted successfully`, { position: "top-center" });
+      toast.success(" deleted successfully");
     } catch (err) {
       console.error(err.response?.data || err.message);
-      toast.error(err.response?.data?.message || `Failed to delete "${name}"`, {
-        position: "top-center",
-      });
+      toast.error(err.response?.data?.message || "Failed to delete");
     }
   };
 

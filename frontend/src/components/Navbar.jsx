@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -14,15 +13,7 @@ const Navbar = () => {
     localStorage.removeItem("adminData");
 
     // Show logout success toast
-    toast.success("Logged out successfully!", {
-      position: "top-center",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
+    toast.success("Logged out successfully!");
 
     // Navigate to login page
     setTimeout(() => {
@@ -32,7 +23,7 @@ const Navbar = () => {
 
   return (
     <>
-    <ToastContainer />
+    
       <header className="bg-white shadow-lg px-4 sm:px-6 py-3 flex items-center justify-between w-full border-b border-gray-100">
         <div className="flex items-center">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">

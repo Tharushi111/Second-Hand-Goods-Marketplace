@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 
 const UpdateReorderForm = () => {
   const location = useLocation();
@@ -55,13 +54,10 @@ const UpdateReorderForm = () => {
         quantity: Number(form.quantity)
       });
 
-      toast.success("Reorder request updated successfully!", { 
-        position: "top-center", 
-        autoClose: 1000,
-        onClose: () => navigate("/inventory/reorders"),
-      });
+      toast.success("Reorder request updated successfully!");
+      navigate("/inventory/reorders");
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to update reorder request", { position: "top-center" });
+      toast.error(err.response?.data?.error || "Failed to update reorder request");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,7 +65,6 @@ const UpdateReorderForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-      <ToastContainer />
       <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl">
         <h2 className="text-2xl text-black mb-6 text-center">Update Reorder Request</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast} from "react-toastify";
+import { toast } from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaBox, FaTag, FaDollarSign, FaAlignLeft, FaSave } from "react-icons/fa";
 
@@ -20,7 +20,7 @@ export default function UpdateProductForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Format price to 300,000.00 format
+  
   const formatPrice = (price) => {
     return parseFloat(price || 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,

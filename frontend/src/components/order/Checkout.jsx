@@ -4,8 +4,7 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../User/UserNavbar";
 import Footer from "../User/UserFooter";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 
 const Checkout = () => {
   const [cart, setCart] = useState([]);
@@ -92,12 +91,12 @@ const Checkout = () => {
     if (!file) return;
     
     if (!file.type.match('image.*') && file.type !== 'application/pdf') {
-      toast.error('Please upload an image or PDF file', { position: "top-center" });
+      toast.error('Please upload an image or PDF file');
       return;
     }
     
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size should be less than 5MB', { position: "top-center" });
+      toast.error('File size should be less than 5MB');
       return;
     }
     
@@ -107,24 +106,24 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     if (!token) {
-      toast.error("Please login first.", { position: "top-center" });
+      toast.error("Please login first.");
       navigate("/UserLogin");
       return;
     }
     
     if (cart.length === 0) {
-      toast.error("Your cart is empty. Please add items before checkout.", { position: "top-center" });
+      toast.error("Your cart is empty. Please add items before checkout.");
       navigate("/cart");
       return;
     }
     
     if (deliveryMethod === "different" && !address.trim()) {
-      toast.error("Please enter delivery address", { position: "top-center" });
+      toast.error("Please enter delivery address");
       return;
     }
     
     if (paymentMethod === "bank" && !slipFile) {
-      toast.error("Please upload payment slip", { position: "top-center" });
+      toast.error("Please upload payment slip");
       return;
     }
 
@@ -192,10 +191,7 @@ const Checkout = () => {
         }
       }
 
-      toast.success("🎉 Order placed successfully! Order ID: " + res.data.orderId, { 
-        position: "top-center",
-        duration: 4000 
-      });
+      toast.success("🎉 Order placed successfully! Order ID: " + res.data.orderId);
       
       // Clear cart and navigate to confirmation
       localStorage.removeItem("cart"); 
@@ -210,10 +206,7 @@ const Checkout = () => {
     } catch (err) {
       console.error("Failed to place order:", err);
       console.error("Error details:", err.response?.data);
-      toast.error("Failed to place order: " + (err.response?.data?.message || "Please try again. Check console for details."), { 
-        position: "top-center",
-        duration: 5000 
-      });
+      toast.error("Failed to place order: " + (err.response?.data?.message));
     } finally {
       setLoading(false);
     }
@@ -273,7 +266,7 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      <ToastContainer position="top-center" />
+
       <Navbar />
       <div className="flex-grow py-8 px-4">
         <div className="max-w-6xl mx-auto">

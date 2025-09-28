@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import Select from "react-select";
 import {
   FaArrowLeft,
@@ -111,7 +110,6 @@ const UpdateProduct = () => {
       // Limit decimal part to 2 digits
       decimalPart = decimalPart.substring(0, 2);
     } else if (value.includes('.')) {
-      // If user typed decimal point but no digits, don't auto-fill
       decimalPart = '';
     }
     
@@ -236,16 +234,11 @@ const UpdateProduct = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success("Product updated successfully!", {
-        position: "top-center",
-        autoClose: 1000,
-        onClose: () => navigate("/inventory/products"),
-      });
+      toast.success("Product updated successfully!");
+      navigate("/inventory/products");
     } catch (err) {
       console.error("Update error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.message || "Failed to update product", {
-        position: "top-center",
-      });
+      toast.error(err.response?.data?.message || "Failed to update product");
 
       if (err.response?.status === 401) {
         localStorage.removeItem("adminToken");
@@ -268,7 +261,6 @@ const UpdateProduct = () => {
 
   return (
     <div className="min-h-screen bg-white py-8 px-4">
-      <ToastContainer />
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

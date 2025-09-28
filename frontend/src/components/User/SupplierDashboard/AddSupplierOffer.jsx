@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -116,8 +115,7 @@ export default function AddSupplierOffer() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success("Offer submitted successfully!", {
-        duration: 1000, 
+      toast.success("Offer submitted successfully!", { 
         onClose: () => navigate("/SupplierDashboard") 
       });
 

@@ -22,7 +22,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import jsPDF from "jspdf";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import logo from '../../assets/ReBuyLogo.png';
 
 const OrderHistory = () => {
@@ -335,14 +335,7 @@ const OrderHistory = () => {
       
     } catch (error) {
       console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF", {
-        position: "top-center",
-        autoClose: 1000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Failed to generate PDF");
     } finally {
       setDownloadingPdf(false);
     }

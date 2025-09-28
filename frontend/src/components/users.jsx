@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Search, Users, Filter, RefreshCw, X, Mail, Phone, Building, User, Shield } from "lucide-react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 export default function AllUsers() {
   const [users, setUsers] = useState([]);

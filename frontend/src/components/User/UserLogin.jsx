@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { toast} from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import { Eye, EyeOff, Mail, Lock, Loader, User, ArrowRight } from "lucide-react";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -39,14 +38,14 @@ const UserLogin = () => {
       localStorage.setItem("role", data.role);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      toast.success(`Welcome back! Redirecting to ${data.role} dashboard...`);
+      toast.success("Welcome back! Redirecting to dashboard...");
 
       setTimeout(() => {
         navigate(data.role === "supplier" ? "/SupplierDashboard" : "/BuyerDashboard");
       }, 1500);
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Login failed. Please try again.";
-      toast.error(errorMessage, { position: "top-center", duration: 4000 });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
