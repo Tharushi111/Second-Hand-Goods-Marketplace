@@ -43,7 +43,7 @@ function ReorderRequestForm({ onSuccess }) {
     e.preventDefault();
     if (!validate()) return;
 
-    // Additional validation to prevent 0 quantity
+    //validation to prevent 0 quantity
     if (Number(form.quantity) === 0) {
       toast.error("Quantity must be greater than 0");
       return;
