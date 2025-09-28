@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
 import { 
   Search, 
   Download, 
@@ -28,6 +30,7 @@ const AdminOrders = () => {
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [slipType, setSlipType] = useState("");
+  const navigate = useNavigate();
 
   const token = localStorage.getItem("adminToken");
   const API_BASE_URL = "http://localhost:5001";
@@ -167,27 +170,69 @@ const AdminOrders = () => {
   };
 
   // Helper function to render customer information
-  const renderCustomerInfo = (customer) => {
+  const renderCustomerInfo = (customer, address, deliveryMethod) => {
     if (!customer) return null;
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 bg-white/70 p-3 rounded-xl border border-blue-100 shadow-sm">
+        {/* Username */}
         {customer.username && (
           <div className="flex items-center gap-2">
             <User size={14} className="text-blue-500" />
             <span className="font-medium text-gray-900">{customer.username}</span>
           </div>
         )}
+
+        {/* Email */}
         {customer.email && (
           <div className="flex items-center gap-2">
             <Mail size={14} className="text-blue-500" />
             <span className="text-sm text-gray-600">{customer.email}</span>
           </div>
         )}
+
+        {/* Phone */}
         {customer.phone && (
           <div className="flex items-center gap-2">
             <Phone size={14} className="text-blue-500" />
             <span className="text-sm text-gray-600">{customer.phone}</span>
+          </div>
+        )}
+
+        {/* Delivery Method Badge */}
+        <div className="mt-2">
+          <span
+            className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+              deliveryMethod === "different"
+                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                : deliveryMethod === "store"
+                ? "bg-sky-50 text-sky-700 border border-sky-200"
+                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+            }`}
+          >
+            {deliveryMethod === "different"
+              ? "🟠 Different Address"
+              : deliveryMethod === "store"
+              ? "🟢 Store Pickup"
+              : "🔵 Home Delivery"}
+          </span>
+        </div>
+
+        {/* Address */}
+        {address && deliveryMethod !== "store" && (
+          <div className="flex items-start gap-2 mt-2">
+            <Hash size={14} className="text-blue-500 mt-0.5" />
+            <div className="text-sm text-gray-600 leading-snug">
+              {deliveryMethod === "different" ? (
+                <p>{address.line1}</p>
+              ) : (
+                <>
+                  <p>{address.line1}</p>
+                  <p>{address.city}, {address.postalCode}</p>
+                  <p>{address.country}</p>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -285,6 +330,9 @@ const AdminOrders = () => {
                       Payment Slip
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                      Actions
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
                       Update Status
                     </th>
                   </tr>
@@ -322,7 +370,7 @@ const AdminOrders = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          {renderCustomerInfo(order.customer)}
+                          {renderCustomerInfo(order.customer, order.address, order.deliveryMethod)}
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-2 rounded-xl text-xs font-semibold ${
@@ -339,12 +387,12 @@ const AdminOrders = () => {
                         <td className="px-6 py-4">
                           {hasPaymentSlip ? (
                             <button
-                            onClick={() => handleViewSlip(order.paymentSlip.url)}
-                            className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1.5 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 text-sm"
-                          >
-                            <Eye size={14} />
-                            View Slip
-                          </button>
+                              onClick={() => handleViewSlip(order.paymentSlip.url)}
+                              className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1.5 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 text-sm"
+                            >
+                              <Eye size={14} />
+                              View Slip
+                            </button>
                           ) : order.paymentMethod === "bank" ? (
                             <span className="text-rose-600 text-sm bg-rose-50 px-3 py-2 rounded-xl border border-rose-200">
                               Slip Not Uploaded
@@ -354,6 +402,17 @@ const AdminOrders = () => {
                               Not Applicable
                             </span>
                           )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => navigate(`/admin/orders/${order._id}`)}
+                            className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white 
+                                       px-3 py-1.5 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 
+                                       shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 text-sm w-full justify-center"
+                          >
+                            <Hash size={14} />
+                            View Details
+                          </button>
                         </td>
                         <td className="px-6 py-4">
                           <select

@@ -17,6 +17,7 @@ import AllUsers from "./components/users.jsx";
 import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
 import SupplierPage from "./components/supplier/supplier.jsx";
 import AdminOrders from "./components/order/AdminOrders.jsx";
+import OrderDetails from "./components/order/OrderDetails.jsx";
 
 
 // User components
@@ -35,6 +36,7 @@ import Cart from "./components/order/cart.jsx";
 import Checkout from "./components/order/Checkout.jsx";
 import OrderConfirmation from "./components/order/OrderConfirmation.jsx";
 import OrderHistory from "./components/order/OrderHistory.jsx";
+
 
 
 // PrivateRoute for admin
@@ -75,7 +77,8 @@ function App() {
     "/cart",
     "/checkout",
     "/order-confirmation",
-    "/order-history"
+    "/order-history",
+    
 
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
@@ -152,6 +155,8 @@ function App() {
                 </AdminPrivateRoute>
               }
             />
+            
+            <Route path="/admin/orders/:id" element={<OrderDetails />} />
             <Route
               path="/product"
               element={

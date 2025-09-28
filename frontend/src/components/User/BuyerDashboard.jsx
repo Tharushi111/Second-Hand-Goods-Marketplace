@@ -220,24 +220,6 @@ export default function BuyerDashboard() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Toast Container - Top Center */}
-      <ToastContainer 
-        position="top-center"
-        autoClose={1000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        style={{
-          top: '80px', 
-          zIndex: 9999
-        }}
-      />
-
       <div className="flex flex-1 px-8 py-8 gap-8 max-w-7xl mx-auto w-full">
         {/* Sidebar */}
         <aside className="w-80 flex-shrink-0">
