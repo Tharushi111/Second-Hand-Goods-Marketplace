@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 
 // Admin components
@@ -19,14 +20,13 @@ import SupplierPage from "./components/supplier/supplier.jsx";
 import AdminOrders from "./components/order/AdminOrders.jsx";
 import OrderDetails from "./components/order/OrderDetails.jsx";
 
-
 // User components
 import ProductListing from "./components/User/productListing.jsx";
 import HomePage from "./components/User/Home.jsx";
 import AboutUs from "./components/User/About.jsx";
 import ContactUs from "./components/User/Contact.jsx";
 import UserLogin from "./components/User/UserLogin.jsx";
-import Register from "./components/User/UserRegistration.jsx"; 
+import Register from "./components/User/UserRegistration.jsx";
 import BuyerDashboard from "./components/User/BuyerDashboard.jsx";
 import SupplierDashboard from "./components/User/SupplierDashboard/SupplierDashboard.jsx";
 import AddSuplierOffer from "./components/User/SupplierDashboard/AddSupplierOffer.jsx";
@@ -36,8 +36,6 @@ import Cart from "./components/order/cart.jsx";
 import Checkout from "./components/order/Checkout.jsx";
 import OrderConfirmation from "./components/order/OrderConfirmation.jsx";
 import OrderHistory from "./components/order/OrderHistory.jsx";
-
-
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -63,7 +61,7 @@ function App() {
   // Routes that should NOT display admin layout
   const noAdminLayoutRoutes = [
     "/admin/login",
-    "/register",          
+    "/register",
     "/productListing",
     "/HomePage",
     "/AboutUs",
@@ -78,8 +76,6 @@ function App() {
     "/checkout",
     "/order-confirmation",
     "/order-history",
-    
-
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
@@ -107,8 +103,8 @@ function App() {
             <Route path="/FeedbackPage" element={<FeedbackPage />} />
             <Route path="/AddSupplierOffer" element={<AddSuplierOffer />} />
             <Route path="/SupplierOfferList" element={<SupplierOfferList />} />
-            <Route path="/cart" element={<Cart/>}/>
-            <Route path="/checkout" element={<Checkout/>}/>
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
             <Route path="/order-history" element={<OrderHistory />} />
 
@@ -143,7 +139,7 @@ function App() {
               path="/users"
               element={
                 <AdminPrivateRoute>
-                  <AllUsers /> 
+                  <AllUsers />
                 </AdminPrivateRoute>
               }
             />
@@ -155,7 +151,7 @@ function App() {
                 </AdminPrivateRoute>
               }
             />
-            
+
             <Route path="/admin/orders/:id" element={<OrderDetails />} />
             <Route
               path="/product"
@@ -217,7 +213,7 @@ function App() {
               path="/feedback"
               element={
                 <AdminPrivateRoute>
-                  <AdminFeedbackPage/>
+                  <AdminFeedbackPage />
                 </AdminPrivateRoute>
               }
             />
@@ -231,11 +227,11 @@ function App() {
         {!isNoAdminLayout && <Footer />}
       </div>
 
-      {/* Toast container for all pages */}
+      {/* Toastify container for general notifications */}
       <ToastContainer
         position="top-center"
         autoClose={1000}
-        toastStyle={{ fontFamily: "'Open Sans', sans-serif", fontSize: '16px' }}
+        toastStyle={{ fontFamily: "'Open Sans', sans-serif", fontSize: "16px" }}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -243,6 +239,29 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+      />
+
+      {/* Hot Toast container for specific notifications (like products) */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          success: {
+            style: {
+              background: "#4ade80",
+              color: "white",
+            },
+          },
+          error: {
+            style: {
+              background: "#ef4444",
+              color: "white",
+            },
+          },
+          style: {
+            fontSize: "15px",
+            fontFamily: "'Open Sans', sans-serif",
+          },
+        }}
       />
     </div>
   );

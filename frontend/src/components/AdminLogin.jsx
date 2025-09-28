@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import { FaUserShield, FaLock, FaEnvelope, FaSignInAlt } from "react-icons/fa";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -31,15 +30,7 @@ const AdminLogin = () => {
           JSON.stringify({ username: res.data.username, email: res.data.email })
         );
 
-        toast.success("Login successful!", {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+        toast.success("Login successful!");
         navigate("/"); // redirect to Home Page
       } else {
         toast.error("Invalid login response");

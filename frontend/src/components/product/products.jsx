@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { FaEye, FaEdit, FaTrash, FaFilePdf, FaPlus, FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
@@ -99,12 +99,12 @@ const downloadPDF = (product) => {
   doc.setFontSize(12);
   doc.text("Basic Information", margin + 5, 86);
 
-  // Product details - Improved alignment
+  // Product details 
   let currentY = 95;
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(11);
 
-  // Define column positions for better alignment
+  // Define column positions
   const labelX = margin + 5;
   const valueX = margin + 35;
 
@@ -131,7 +131,7 @@ const downloadPDF = (product) => {
   doc.text(descriptionLines, valueX, currentY);
   currentY += descriptionLines.length * 6;
 
-  // Price - formatted
+  // Price 
   doc.setFont(undefined, "bold");
   doc.text("Price:", labelX, currentY);
   doc.setFont(undefined, "normal");

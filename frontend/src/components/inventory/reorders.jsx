@@ -15,7 +15,7 @@ import {
   faSearch,
   faFilter,
 } from "@fortawesome/free-solid-svg-icons";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -42,9 +42,7 @@ const ReorderRequests = () => {
         setReorders(res.data);
       } catch (error) {
         console.error("Error fetching reorder requests:", error);
-        toast.error("Failed to fetch reorder requests", {
-          position: "top-center",
-        });
+        toast.error("Failed to fetch reorder requests");
       } finally {
         setLoading(false);
       }
@@ -80,16 +78,15 @@ const ReorderRequests = () => {
       await axios.delete(`http://localhost:5001/api/reorders/${orderId}`);
       
       // Show toast immediately
-      toast.success(`"${title}" deleted successfully`, { position: "top-center" });
+      toast.success("deleted successfully");
   
       // Update local state
       setReorders((prev) => prev.filter((r) => r._id !== orderId));
   
-      // Optional: navigate after a short delay if needed
-       setTimeout(() => navigate("/inventory/create-reorder"), 300);
+      
     } catch (err) {
       console.error(err);
-      toast.error(`Failed to delete "${title}"`, { position: "top-center" });
+      toast.error("Failed to delete");
     }
   };
   
@@ -172,12 +169,12 @@ const ReorderRequests = () => {
       },
       margin: { left: margin, right: margin },
       columnStyles: {
-        0: { cellWidth: 25 }, // ID column
-        1: { cellWidth: "auto" }, // Title column
-        2: { cellWidth: 20 }, // Quantity column
-        3: { cellWidth: 25 }, // Category column
-        4: { cellWidth: 25 }, // Priority column
-        5: { cellWidth: 25 }, // Date column
+        0: { cellWidth: 25 }, 
+        1: { cellWidth: "auto" }, 
+        2: { cellWidth: 20 }, 
+        3: { cellWidth: 25 }, 
+        4: { cellWidth: 25 }, 
+        5: { cellWidth: 25 }, 
       },
     });
 

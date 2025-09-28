@@ -10,8 +10,7 @@ import {
   FaSort,
   FaStar,
 } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 import Navbar from "../User/UserNavbar";
@@ -90,7 +89,7 @@ const ProductListing = () => {
 
       if (res.status === 201) {
         toast.success(`${product.stock?.name || "Product"} added to cart!`);
-        setCartCount((prevCount) => prevCount + 1); // Increment cartCount immediately
+        setCartCount((prevCount) => prevCount + 1); 
       } else {
         toast.error(res.data.message || "Failed to add product");
       }
@@ -125,7 +124,6 @@ const ProductListing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      <ToastContainer position="top-center" />
       <Navbar />
 
       {/* Top Bar: Search + Filters + Cart */}

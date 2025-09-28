@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const AddStockForm = () => {
@@ -107,7 +107,7 @@ const AddStockForm = () => {
     setReorderLevel(sanitizedValue);
   };
 
-  // Handle quantity change (prevent negative values)
+  // prevent negative values
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     
@@ -172,10 +172,7 @@ const AddStockForm = () => {
   
       console.log("Response:", res.data); 
   
-      toast.success("Stock added successfully!", {
-        position: "top-center",
-        autoClose: 1500,
-      });
+      toast.success("Stock added successfully!");
       
       // Reset form
       setName("");

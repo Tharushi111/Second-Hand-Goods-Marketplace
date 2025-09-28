@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBoxes, faPaperPlane, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import axios from "axios";
 
 function ReorderRequestForm({ onSuccess }) {
@@ -46,7 +45,7 @@ function ReorderRequestForm({ onSuccess }) {
 
     // Additional validation to prevent 0 quantity
     if (Number(form.quantity) === 0) {
-      toast.error("Quantity must be greater than 0", { position: "top-center" });
+      toast.error("Quantity must be greater than 0");
       return;
     }
 
@@ -56,12 +55,12 @@ function ReorderRequestForm({ onSuccess }) {
         ...form,
         quantity: Number(form.quantity)
       });
-      toast.success("Reorder request created successfully!", { position: "top-center" });
+      toast.success("Reorder request created successfully!");
 
       setForm({ title: "", quantity: "", category: "", priority: "Normal", description: "" });
       if (onSuccess) onSuccess(res.data.request); 
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to create reorder request", { position: "top-center" });
+      toast.error(err.response?.data?.error || "Failed to create reorder request");
     } finally {
       setIsSubmitting(false);
     }
@@ -71,7 +70,7 @@ function ReorderRequestForm({ onSuccess }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <ToastContainer />
+      
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden">
         
         {/* Header */}

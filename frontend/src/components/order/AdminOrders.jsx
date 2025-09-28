@@ -82,7 +82,7 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     if (!token) {
-      toast.error("Admin token not found", { position: "top-center" });
+      toast.error("Admin token not found");
       return;
     }
 
@@ -95,7 +95,7 @@ const AdminOrders = () => {
       setFilteredOrders(res.data);
     } catch (err) {
       console.error("Error fetching orders:", err);
-      toast.error(err.response?.data?.message || "Failed to fetch orders", { position: "top-center" });
+      toast.error(err.response?.data?.message || "Failed to fetch orders");
     } finally {
       setLoading(false);
     }
@@ -130,17 +130,17 @@ const AdminOrders = () => {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success("Status updated successfully!", { position: "top-center" });
+      toast.success("Status updated successfully!");
       fetchOrders();
     } catch (err) {
       console.error("Error updating status:", err);
-      toast.error(err.response?.data?.message || "Failed to update status", { position: "top-center" });
+      toast.error(err.response?.data?.message || "Failed to update status");
     }
   };
 
   const handleViewSlip = (slipUrl) => {
     if (!slipUrl) {
-      toast.error("No payment slip available", { position: "top-center" });
+      toast.error("No payment slip available");
       return;
     }
 
