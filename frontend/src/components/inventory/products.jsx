@@ -11,7 +11,7 @@ import {
   faDownload,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoImg from "../../assets/ReBuyLogo.png";
@@ -36,13 +36,32 @@ const StockProducts = () => {
         setStocks(res.data);
       } catch (err) {
         console.error(err);
-        toast.error("Failed to fetch stock products", { position: "top-center" });
+        toast.error("Failed to fetch stock products");
       } finally {
         setLoading(false);
       }
     };
     fetchStocks();
   }, []);
+
+  // Format number with commas and exactly 2 decimal places
+  const formatPrice = (price) => {
+    if (price === null || price === undefined || price === '') return '0.00';
+    
+    const num = parseFloat(price);
+    if (isNaN(num)) return '0.00';
+    
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  // Format number without decimals (for quantity, reorder level)
+  const formatNumber = (num) => {
+    if (num === null || num === undefined || num === '') return '0';
+    return parseInt(num).toLocaleString('en-US');
+  };
 
   const filteredStocks = stocks.filter((stock) => {
     const matchesCategory = stock.category
@@ -67,7 +86,7 @@ const StockProducts = () => {
     const token = localStorage.getItem("adminToken");
   
     if (!token) {
-      toast.error("Unauthorized: Please log in again", { position: "top-center" });
+      toast.error("Unauthorized: Please log in again");
       navigate("/admin/login");
       return;
     }
@@ -84,15 +103,12 @@ const StockProducts = () => {
       setStocks((prev) => prev.filter((s) => s._id !== id));
   
       console.log("Stock deleted, showing toast"); 
-      toast.success(`"${name}" deleted successfully`, { position: "top-center" });
+      toast.success(" deleted successfully");
     } catch (err) {
       console.error(err.response?.data || err.message);
-      toast.error(err.response?.data?.message || `Failed to delete "${name}"`, {
-        position: "top-center",
-      });
+      toast.error(err.response?.data?.message || "Failed to delete");
     }
   };
-  
 
   // Download single stock as PDF
   const handlePdfDownloadRow = (stock) => {
@@ -138,10 +154,10 @@ const StockProducts = () => {
         ["Name", String(stock?.name || "N/A")],
         ["Category", String(stock?.category || "N/A")],
         ["Supplier", String(stock?.supplier?.username || "N/A")],
-        ["Unit Price", `Rs. ${Number(stock?.unitPrice || 0).toFixed(2)}`],
-        ["Quantity", String(stock?.quantity ?? "0")],
-        ["Reorder Level", String(stock?.reorderLevel ?? "0")],
-        ["Total Price", `Rs. ${(stock?.unitPrice * stock?.quantity).toFixed(2)}`],
+        ["Unit Price", `Rs. ${formatPrice(stock?.unitPrice || 0)}`],
+        ["Quantity", formatNumber(stock?.quantity ?? "0")],
+        ["Reorder Level", formatNumber(stock?.reorderLevel ?? "0")],
+        ["Total Price", `Rs. ${formatPrice((stock?.unitPrice * stock?.quantity) || 0)}`],
         [
           "Status",
           stock?.quantity === 0
@@ -227,10 +243,10 @@ const StockProducts = () => {
       String(stock?.name || "N/A"),
       String(stock?.category || "N/A"),
       String(stock?.supplier?.username || "N/A"),
-      `Rs. ${Number(stock?.unitPrice || 0).toFixed(2)}`,
-      String(stock?.quantity ?? "0"),
-      String(stock?.reorderLevel ?? "0"),
-      `Rs. ${(stock?.unitPrice * stock?.quantity).toFixed(2)}`,
+      `Rs. ${formatPrice(stock?.unitPrice || 0)}`,
+      formatNumber(stock?.quantity ?? "0"),
+      formatNumber(stock?.reorderLevel ?? "0"),
+      `Rs. ${formatPrice((stock?.unitPrice * stock?.quantity) || 0)}`,
       stock?.quantity === 0
         ? "Out of Stock"
         : stock?.quantity <= (stock?.reorderLevel ?? 0)
@@ -389,11 +405,11 @@ const StockProducts = () => {
                     <td className="px-4 py-3 font-medium">{stock.name}</td>
                     <td className="px-4 py-3">{stock.category}</td>
                     <td className="px-4 py-3">{stock.supplier?.username || "N/A"}</td>
-                    <td className="px-4 py-3">Rs. {Number(stock.unitPrice).toFixed(2)}</td>
-                    <td className="px-4 py-3">{stock.quantity}</td>
-                    <td className="px-4 py-3">{stock.reorderLevel}</td>
+                    <td className="px-4 py-3">Rs. {formatPrice(stock.unitPrice)}</td>
+                    <td className="px-4 py-3">{formatNumber(stock.quantity)}</td>
+                    <td className="px-4 py-3">{formatNumber(stock.reorderLevel)}</td>
                     <td className="px-4 py-3">
-                      Rs. {(stock.unitPrice * stock.quantity).toFixed(2)}
+                      Rs. {formatPrice(stock.unitPrice * stock.quantity)}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -467,10 +483,10 @@ const StockProducts = () => {
               </div>
               <p>Category: {stock.category}</p>
               <p>Supplier: {stock.supplier?.username || "N/A"}</p>
-              <p>Unit Price: Rs. {Number(stock.unitPrice).toFixed(2)}</p>
-              <p>Quantity: {stock.quantity}</p>
-              <p>Reorder Level: {stock.reorderLevel}</p>
-              <p>Total Price: Rs. {(stock.unitPrice * stock.quantity).toFixed(2)}</p>
+              <p>Unit Price: Rs. {formatPrice(stock.unitPrice)}</p>
+              <p>Quantity: {formatNumber(stock.quantity)}</p>
+              <p>Reorder Level: {formatNumber(stock.reorderLevel)}</p>
+              <p>Total Price: Rs. {formatPrice(stock.unitPrice * stock.quantity)}</p>
               <p>Date: {new Date(stock.createdAt).toLocaleDateString()}</p>
               <div className="flex justify-center gap-4 mt-2">
                 <button
@@ -528,20 +544,20 @@ const StockProducts = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Quantity</h3>
-                    <p className="mt-1 text-lg font-medium">{selectedStock.quantity}</p>
+                    <p className="mt-1 text-lg font-medium">{formatNumber(selectedStock.quantity)}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Reorder Level</h3>
-                    <p className="mt-1 text-lg font-medium">{selectedStock.reorderLevel}</p>
+                    <p className="mt-1 text-lg font-medium">{formatNumber(selectedStock.reorderLevel)}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Unit Price</h3>
-                    <p className="mt-1 text-lg font-medium">{selectedStock.unitPrice.toFixed(2)}</p>
+                    <p className="mt-1 text-lg font-medium">Rs. {formatPrice(selectedStock.unitPrice)}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Total Price</h3>
                     <p className="mt-1 text-lg font-medium">
-                      {(selectedStock.unitPrice * selectedStock.quantity).toFixed(2)}
+                      Rs. {formatPrice(selectedStock.unitPrice * selectedStock.quantity)}
                     </p>
                   </div>
                   <div className="md:col-span-2">

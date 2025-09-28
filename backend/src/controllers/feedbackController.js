@@ -58,10 +58,10 @@ export const updateFeedback = async (req, res) => {
 export const deleteFeedback = async (req, res) => {
   try {
     // Only admin can delete
-    if (req.user.role !== "admin") {
+    if (!["admin", "super_admin"].includes(req.user.role)) {
       return res.status(403).json({ error: "You are not authorized to delete feedback" });
     }
-
+    
     const { id } = req.params;
     const feedback = await Feedback.findByIdAndDelete(id);
 

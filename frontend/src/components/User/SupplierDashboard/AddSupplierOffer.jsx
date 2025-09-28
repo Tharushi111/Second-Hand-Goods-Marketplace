@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +13,7 @@ export default function AddSupplierOffer() {
     deliveryDate: ""
   });
 
+  const [displayPrice, setDisplayPrice] = useState("");
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
@@ -24,10 +25,67 @@ export default function AddSupplierOffer() {
     }
   }, [token, navigate]);
 
+  // Format price with thousand separators and two decimal places
+  const formatPrice = (value) => {
+    // Remove all non-digit characters except decimal point
+    const cleanValue = value.replace(/[^\d.]/g, '');
+    
+    // Split into integer and decimal parts
+    const parts = cleanValue.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts[1] || '';
+    
+    // Format integer part with thousand separators
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Limit decimal part to 2 digits
+    if (decimalPart.length > 2) {
+      decimalPart = decimalPart.substring(0, 2);
+    }
+    
+    // Combine parts
+    if (decimalPart) {
+      return `${integerPart}.${decimalPart}`;
+    }
+    return integerPart;
+  };
+
+  // Parse formatted price back to raw number for form data
+  const parsePrice = (formattedValue) => {
+    return formattedValue.replace(/,/g, '');
+  };
+
+  const handlePriceChange = (e) => {
+    const value = e.target.value;
+    
+    // Allow empty value or format the input
+    if (value === "") {
+      setDisplayPrice("");
+      setFormData(prev => ({ ...prev, pricePerUnit: "" }));
+      setErrors(prev => ({ ...prev, pricePerUnit: "" }));
+      return;
+    }
+    
+    const formattedValue = formatPrice(value);
+    setDisplayPrice(formattedValue);
+    
+    // Update form data with raw numeric value (without commas)
+    const rawValue = parsePrice(formattedValue);
+    setFormData(prev => ({ ...prev, pricePerUnit: rawValue }));
+    setErrors(prev => ({ ...prev, pricePerUnit: "" }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Use special handler for price field
+    if (name === "pricePerUnit") {
+      handlePriceChange(e);
+      return;
+    }
+    
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: "" }); 
+    setErrors({ ...errors, [name]: "" });
   };
 
   const validate = () => {
@@ -57,12 +115,12 @@ export default function AddSupplierOffer() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success("Offer submitted successfully!", {
-        duration: 2000, 
+      toast.success("Offer submitted successfully!", { 
         onClose: () => navigate("/SupplierDashboard") 
       });
 
       setFormData({ title: "", description: "", pricePerUnit: "", quantityOffered: "", deliveryDate: "" });
+      setDisplayPrice("");
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Error submitting offer");
@@ -81,8 +139,7 @@ export default function AddSupplierOffer() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col">
-      <Toaster />
-
+      
       {/* Navbar - Fixed at top */}
       <nav className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,18 +243,16 @@ export default function AddSupplierOffer() {
               <div className="relative">
                 <span className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-blue-600 font-semibold text-sm sm:text-base">Rs</span>
                 <input
-                  type="number"
+                  type="text"
                   name="pricePerUnit"
-                  value={formData.pricePerUnit}
-                  onChange={handleChange}
+                  value={displayPrice}
+                  onChange={handlePriceChange}
                   className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 text-sm sm:text-base ${
                     errors.pricePerUnit 
                       ? "border-red-500 focus:border-red-500 focus:ring-red-100" 
                       : "border-blue-200 focus:border-blue-500 focus:ring-blue-100"
                   }`}
                   placeholder="0.00"
-                  min="0"
-                  step="0.01"
                 />
               </div>
               {errors.pricePerUnit && <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">

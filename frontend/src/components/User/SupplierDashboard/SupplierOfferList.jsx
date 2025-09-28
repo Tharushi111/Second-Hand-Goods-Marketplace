@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import {
   FaEdit,
@@ -25,7 +25,7 @@ export default function SupplierOfferList() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const navigate = useNavigate();
 
-  // === Edit Modal State ===
+  // Edit Modal State
   const [showModal, setShowModal] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [formData, setFormData] = useState({
@@ -35,8 +35,43 @@ export default function SupplierOfferList() {
     quantityOffered: "",
     deliveryDate: "",
   });
+  const [displayPrice, setDisplayPrice] = useState("");
 
-  // === Decode JWT to get supplier ID ===
+  // Format price with thousand separators and two decimal places
+  const formatPrice = (value) => {
+    if (!value && value !== 0) return "";
+    
+    // Convert to string and remove any existing formatting
+    const stringValue = value.toString().replace(/,/g, '');
+    
+    // Split into integer and decimal parts
+    const parts = stringValue.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts[1] || '';
+    
+    // Format integer part with thousand separators
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Ensure decimal part has exactly 2 digits
+    if (decimalPart.length > 2) {
+      decimalPart = decimalPart.substring(0, 2);
+    } else if (decimalPart.length < 2) {
+      decimalPart = decimalPart.padEnd(2, '0');
+    }
+    
+    // Combine parts
+    if (decimalPart) {
+      return `${integerPart}.${decimalPart}`;
+    }
+    return integerPart + '.00';
+  };
+
+  // Parse formatted price back to raw number for form data
+  const parsePrice = (formattedValue) => {
+    return formattedValue.replace(/,/g, '');
+  };
+
+  // Decode JWT to get supplier ID 
   const getSupplierIdFromToken = () => {
     try {
       const token = localStorage.getItem("token");
@@ -50,7 +85,7 @@ export default function SupplierOfferList() {
 
   const supplierId = getSupplierIdFromToken();
 
-  // === Fetch offers ===
+  // Fetch offers
   const fetchOffers = async () => {
     if (!supplierId) {
       toast.error("You must be logged in as a supplier.");
@@ -90,7 +125,7 @@ export default function SupplierOfferList() {
     fetchOffers();
   }, []);
 
-  // === Handle Delete ===
+  //Handle Delete
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
@@ -106,20 +141,41 @@ export default function SupplierOfferList() {
     }
   };
 
-  // === Handle Open Edit Modal ===
+  // Handle Price Change in Modal
+  const handlePriceChange = (e) => {
+    const value = e.target.value;
+    
+    // Allow empty value or format the input
+    if (value === "") {
+      setDisplayPrice("");
+      setFormData(prev => ({ ...prev, pricePerUnit: "" }));
+      return;
+    }
+    
+    const formattedValue = formatPrice(value);
+    setDisplayPrice(formattedValue);
+    
+    // Update form data with raw numeric value (without commas)
+    const rawValue = parsePrice(formattedValue);
+    setFormData(prev => ({ ...prev, pricePerUnit: rawValue }));
+  };
+
+  // Handle Open Edit Modal
   const handleEdit = (offer) => {
     setSelectedOffer(offer._id);
+    const formattedPrice = formatPrice(offer.pricePerUnit);
     setFormData({
       title: offer.title,
       description: offer.description,
-      pricePerUnit: offer.pricePerUnit,
+      pricePerUnit: offer.pricePerUnit.toString(),
       quantityOffered: offer.quantityOffered,
       deliveryDate: offer.deliveryDate ? offer.deliveryDate.split("T")[0] : "",
     });
+    setDisplayPrice(formattedPrice);
     setShowModal(true);
   };
 
-  // === Handle Update Offer ===
+  // Handle Update Offer
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -135,6 +191,7 @@ export default function SupplierOfferList() {
       toast.success("Offer updated successfully!");
       setShowModal(false);
       setSelectedOffer(null);
+      setDisplayPrice("");
       fetchOffers();
     } catch (err) {
       console.error(err);
@@ -142,12 +199,12 @@ export default function SupplierOfferList() {
     }
   };
 
-  // === Handle Create Offer Redirect ===
+  // Handle Create Offer Redirect
   const handleCreateOffer = () => {
     navigate("/AddSupplierOffer");
   };
 
-  // === Handle Sorting ===
+  // Handle Sorting
   const handleSort = (key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -156,7 +213,7 @@ export default function SupplierOfferList() {
     setSortConfig({ key, direction });
   };
 
-  // === Filter and sort offers ===
+  // Filter and sort offers
   const filteredAndSortedOffers = React.useMemo(() => {
     let filtered = offers.filter(offer => {
       const matchesSearch = offer.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -180,7 +237,7 @@ export default function SupplierOfferList() {
     return filtered;
   }, [offers, searchTerm, statusFilter, sortConfig]);
 
-  // === Get status counts ===
+  // Get status counts
   const statusCounts = {
     All: offers.length,
     Pending: offers.filter(o => o.status === "Pending").length,
@@ -188,7 +245,7 @@ export default function SupplierOfferList() {
     Rejected: offers.filter(o => o.status === "Rejected").length,
   };
 
-  // === Sort icon component ===
+  //Sort icon component
   const SortIcon = ({ columnKey }) => {
     if (sortConfig.key !== columnKey) {
       return <FaSort className="text-blue-300 ml-1" />;
@@ -200,8 +257,7 @@ export default function SupplierOfferList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 lg:p-8">
-      <Toaster position="top-center" />
-
+      
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8">
@@ -381,7 +437,7 @@ export default function SupplierOfferList() {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="font-bold text-blue-600">Rs {offer.pricePerUnit}</span>
+                        <span className="font-bold text-blue-600">Rs {formatPrice(offer.pricePerUnit)}</span>
                       </td>
                       <td className="py-4 px-6">
                         <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -457,7 +513,7 @@ export default function SupplierOfferList() {
         )}
       </div>
 
-      {/* ===== Update Offer Modal ===== */}
+      {/*Update Offer Modal*/}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -505,13 +561,11 @@ export default function SupplierOfferList() {
                 <div>
                   <label className="block text-sm font-medium text-blue-700 mb-2">Price (Rs)</label>
                   <input
-                    type="number"
+                    type="text"
                     placeholder="0.00"
-                    value={formData.pricePerUnit}
-                    onChange={(e) => setFormData({ ...formData, pricePerUnit: e.target.value })}
+                    value={displayPrice}
+                    onChange={handlePriceChange}
                     className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50 text-blue-900"
-                    min="0"
-                    step="0.01"
                     required
                   />
                 </div>

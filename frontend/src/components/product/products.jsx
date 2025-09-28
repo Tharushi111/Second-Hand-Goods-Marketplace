@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { FaEye, FaEdit, FaTrash, FaFilePdf, FaPlus, FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
@@ -18,6 +18,14 @@ export default function ProductTable() {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
+
+  // Format price to 300,000.00 format
+  const formatPrice = (price) => {
+    return parseFloat(price || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
 
   // Fetch products from backend
   const fetchProducts = async () => {
@@ -91,48 +99,51 @@ const downloadPDF = (product) => {
   doc.setFontSize(12);
   doc.text("Basic Information", margin + 5, 86);
 
-  // Product details
+  // Product details 
   let currentY = 95;
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(11);
 
-    // name
+  // Define column positions
+  const labelX = margin + 5;
+  const valueX = margin + 35;
+
+  // Name
   doc.setFont(undefined, "bold");
-  doc.text("Name:", margin + 5, currentY);
+  doc.text("Name:", labelX, currentY);
   doc.setFont(undefined, "normal");
-  doc.text(String(product?.stock?.name || ""), margin + 30, currentY); 
+  doc.text(String(product?.stock?.name || ""), valueX, currentY);
   currentY += 8;
 
   // Category
   doc.setFont(undefined, "bold");
-  doc.text("Category:", margin + 5, currentY);
+  doc.text("Category:", labelX, currentY);
   doc.setFont(undefined, "normal");
-  doc.text(String(product?.category || ""), margin + 30, currentY);
+  doc.text(String(product?.category || ""), valueX, currentY);
   currentY += 8;
-
 
   // Description
   doc.setFont(undefined, "bold");
-  doc.text("Description:", margin + 5, currentY);
+  doc.text("Description:", labelX, currentY);
   doc.setFont(undefined, "normal");
   const descriptionText = String(product?.description || "N/A");
-  const descriptionLines = doc.splitTextToSize(descriptionText, pageWidth - margin * 2 - 10);
-  doc.text(descriptionLines, margin + 35, currentY);
+  const descriptionLines = doc.splitTextToSize(descriptionText, pageWidth - valueX - margin);
+  doc.text(descriptionLines, valueX, currentY);
   currentY += descriptionLines.length * 6;
 
-  // Price
+  // Price 
   doc.setFont(undefined, "bold");
-  doc.text("Price:", margin + 5, currentY);
+  doc.text("Price:", labelX, currentY);
   doc.setFont(undefined, "normal");
-  doc.text(`Rs. ${String(product?.price || "0")}`, margin + 25, currentY);
+  doc.text(`Rs. ${formatPrice(product?.price)}`, valueX, currentY);
   currentY += 8;
 
   // Created date
   doc.setFont(undefined, "bold");
-  doc.text("Created:", margin + 5, currentY);
+  doc.text("Created:", labelX, currentY);
   doc.setFont(undefined, "normal");
   const createdAt = product?.createdAt ? new Date(product.createdAt).toLocaleDateString() : "N/A";
-  doc.text(createdAt, margin + 30, currentY);
+  doc.text(createdAt, valueX, currentY);
   currentY += 8;
 
   // Add footer with page number and generated date
@@ -142,7 +153,7 @@ const downloadPDF = (product) => {
   doc.text("Page 1 of 1", pageWidth - margin, pageHeight - 10, { align: "right" });
 
   // Save file
-  const fileName = (product?.name || "product").replace(/\s+/g, "_");
+  const fileName = (product?.stock?.name || "product").replace(/\s+/g, "_");
   doc.save(`${fileName}_details.pdf`);
 };
 
@@ -245,7 +256,7 @@ const downloadPDF = (product) => {
                     <tr key={product._id} className="hover:bg-blue-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">{product.stock.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{product.category}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">Rs.{product.price}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">Rs.{formatPrice(product.price)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">{new Date(product.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                         <div className="flex justify-center space-x-2">
@@ -289,7 +300,7 @@ const downloadPDF = (product) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Price</h3>
-                  <p className="mt-1 text-gray-900 font-semibold">Rs.{viewProduct.price}</p>
+                  <p className="mt-1 text-gray-900 font-semibold">Rs.{formatPrice(viewProduct.price)}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Created At</h3>

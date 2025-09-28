@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import Select from "react-select";
 import {
   FaArrowLeft,
@@ -23,13 +22,13 @@ const UpdateProduct = () => {
   const [product, setProduct] = useState({
     name: "",
     category: "",
-    quantity: "", 
+    quantity: "",
     unitPrice: "",
     reorderLevel: "",
     description: "",
     supplier: "",
   });
-  
+
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -53,12 +52,15 @@ const UpdateProduct = () => {
           }),
         ]);
 
+        // Format the unit price with commas and 2 decimal places
+        const formattedUnitPrice = formatNumber(productRes.data.unitPrice?.toString() || "0");
+
         setProduct({
           name: productRes.data.name || "",
           category: productRes.data.category || "",
-          quantity: productRes.data.quantity || 0,
-          unitPrice: productRes.data.unitPrice || 0,
-          reorderLevel: productRes.data.reorderLevel || 0,
+          quantity: productRes.data.quantity?.toString() || "0",
+          unitPrice: formattedUnitPrice,
+          reorderLevel: productRes.data.reorderLevel?.toString() || "0",
           description: productRes.data.description || "",
           supplier: productRes.data.supplier?._id || "",
         });
@@ -79,18 +81,113 @@ const UpdateProduct = () => {
     fetchData();
   }, [id, navigate]);
 
-  const supplierOptions = suppliers.map((s) => ({ value: s._id, label: s.name }));
+  // Format number with commas and exactly 2 decimal places
+  const formatNumber = (value) => {
+    if (!value) return '';
+    
+    // Remove all non-digit characters except decimal point
+    const num = value.toString().replace(/[^\d.]/g, '');
+    
+    if (num === '') return '';
+    
+    // Split into integer and decimal parts
+    const parts = num.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts[1] || '';
+    
+    // Don't allow integer part to start with 0 if it has more digits
+    if (integerPart.length > 1 && integerPart.startsWith('0')) {
+      integerPart = integerPart.substring(1);
+    }
+    
+    // Format integer part with commas
+    if (integerPart) {
+      integerPart = parseInt(integerPart, 10).toLocaleString('en-US');
+    }
+    
+    // Handle decimal part - allow any digits but limit to 2 places
+    if (decimalPart !== '') {
+      // Limit decimal part to 2 digits
+      decimalPart = decimalPart.substring(0, 2);
+    } else if (value.includes('.')) {
+      decimalPart = '';
+    }
+    
+    return decimalPart !== '' ? `${integerPart}.${decimalPart}` : 
+           value.includes('.') ? `${integerPart}.` : integerPart;
+  };
 
+  // Parse formatted number back to raw number
+  const parseFormattedNumber = (formattedValue) => {
+    return formattedValue.replace(/,/g, '');
+  };
+
+  // Handle unit price change with formatting
+  const handleUnitPriceChange = (e) => {
+    const rawValue = e.target.value;
+    
+    // Prevent multiple decimal points
+    if ((rawValue.match(/\./g) || []).length > 1) return;
+    
+    const formattedValue = formatNumber(rawValue);
+    setProduct(prev => ({
+      ...prev,
+      unitPrice: formattedValue
+    }));
+  };
+
+  // Handle quantity change (prevent negative values)
+  const handleQuantityChange = (e) => {
+    const value = e.target.value;
+    
+    // Allow only numbers
+    const sanitizedValue = value.replace(/[^\d]/g, '');
+    
+    // If value is not empty, prevent negative values
+    if (sanitizedValue !== '') {
+      const numericValue = parseInt(sanitizedValue);
+      if (numericValue < 0) return;
+    }
+    
+    setProduct(prev => ({
+      ...prev,
+      quantity: sanitizedValue
+    }));
+  };
+
+  // Handle reorder level change (allow only positive integers, no decimals)
+  const handleReorderLevelChange = (e) => {
+    const value = e.target.value;
+    
+    // Allow only numbers (no decimal point)
+    const sanitizedValue = value.replace(/[^\d]/g, '');
+    
+    // If value is not empty, prevent zero and negative values
+    if (sanitizedValue !== '') {
+      const numericValue = parseInt(sanitizedValue);
+      if (numericValue <= 0) return;
+    }
+    
+    setProduct(prev => ({
+      ...prev,
+      reorderLevel: sanitizedValue
+    }));
+  };
+
+  // Handle other changes (name, category, description)
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
-    if (name === "quantity") {
-      setProduct({ ...product, [name]: value === "" ? "" : Number(value) });
-    } else {
-      setProduct({ ...product, [name]: value });
-    }
+    setProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
-  
+
+  // Prepare options for React Select
+  const supplierOptions = suppliers.map((s) => ({ value: s._id, label: s.username }));
+
+  // Get the selected supplier object for React Select
+  const selectedSupplier = supplierOptions.find((s) => s.value === product.supplier) || null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,23 +201,44 @@ const UpdateProduct = () => {
       return;
     }
 
+    // Validation
+    if (parseInt(product.quantity) < 0) {
+      toast.error("Quantity must be 0 or more");
+      setSubmitting(false);
+      return;
+    }
+
+    if (parseInt(product.reorderLevel) <= 0) {
+      toast.error("Reorder Level must be a positive whole number");
+      setSubmitting(false);
+      return;
+    }
+
+    const rawUnitPrice = parseFormattedNumber(product.unitPrice);
+    if (parseFloat(rawUnitPrice) <= 0) {
+      toast.error("Unit Price must be greater than 0");
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      const payload = { ...product, supplierId: product.supplier };
+      const payload = { 
+        ...product, 
+        supplierId: product.supplier,
+        quantity: Number(product.quantity),
+        reorderLevel: Number(product.reorderLevel),
+        unitPrice: Number(rawUnitPrice)
+      };
+      
       await axios.put(`http://localhost:5001/api/admin/auth/stocks/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Show success toast and navigate after it closes
-      toast.success("Product updated successfully!", {
-        position: "top-center",
-        autoClose: 1000,
-        onClose: () => navigate("/inventory/products"),
-      });
+      toast.success("Product updated successfully!");
+      navigate("/inventory/products");
     } catch (err) {
       console.error("Update error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.message || "Failed to update product", {
-        position: "top-center",
-      });
+      toast.error(err.response?.data?.message || "Failed to update product");
 
       if (err.response?.status === 401) {
         localStorage.removeItem("adminToken");
@@ -143,7 +261,6 @@ const UpdateProduct = () => {
 
   return (
     <div className="min-h-screen bg-white py-8 px-4">
-      <ToastContainer />
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -207,17 +324,13 @@ const UpdateProduct = () => {
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-1">Quantity</label>
                   <input
-                    type="number"
-                    name="quantity"
+                    type="text"
                     value={product.quantity}
-                    onChange={handleChange}
+                    onChange={handleQuantityChange}
                     onKeyDown={(e) => {
-                      if (["e", "E", "+", "-"].includes(e.key)) {
-                        e.preventDefault();
-                      }
+                      if (["e", "E", "+", "-", "."].includes(e.key)) e.preventDefault();
                     }}
                     placeholder="0"
-                    min="0"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     required
                   />
@@ -229,12 +342,13 @@ const UpdateProduct = () => {
                     <FaListOl className="mr-2 text-blue-500" /> Reorder Level
                   </label>
                   <input
-                    type="number"
-                    name="reorderLevel"
+                    type="text"
                     value={product.reorderLevel}
-                    onChange={handleChange}
+                    onChange={handleReorderLevelChange}
+                    onKeyDown={(e) => {
+                      if (["e", "E", "+", "-", "."].includes(e.key)) e.preventDefault();
+                    }}
                     placeholder="0"
-                    min="0"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     required
                   />
@@ -247,13 +361,10 @@ const UpdateProduct = () => {
                   <FaDollarSign className="mr-2 text-green-500" /> Unit Price
                 </label>
                 <input
-                  type="number"
-                  name="unitPrice"
+                  type="text"
                   value={product.unitPrice}
-                  onChange={handleChange}
+                  onChange={handleUnitPriceChange}
                   placeholder="0.00"
-                  min="0"
-                  step="0.01"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   required
                 />
@@ -266,12 +377,13 @@ const UpdateProduct = () => {
                 </label>
                 <Select
                   options={supplierOptions}
-                  value={supplierOptions.find((s) => s.value === product.supplier)}
+                  value={selectedSupplier}
                   onChange={(selected) =>
-                    setProduct({ ...product, supplier: selected ? selected.value : "" })
+                    setProduct((prev) => ({ ...prev, supplier: selected ? selected.value : "" }))
                   }
+                  isClearable
                   styles={{
-                    control: (base) => ({ ...base, backgroundColor: "white", color: "black" }),
+                    control: (base) => ({ ...base, backgroundColor: "white" }),
                     singleValue: (base) => ({ ...base, color: "black" }),
                     menu: (base) => ({ ...base, backgroundColor: "white" }),
                     option: (base, { isSelected, isFocused }) => ({
@@ -280,8 +392,6 @@ const UpdateProduct = () => {
                       color: isSelected ? "white" : "black",
                     }),
                   }}
-                  placeholder="Select Supplier"
-                  isClearable
                 />
               </div>
 

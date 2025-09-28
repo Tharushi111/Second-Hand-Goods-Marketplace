@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaBox, FaTag, FaDollarSign, FaAlignLeft } from "react-icons/fa";
 
@@ -30,6 +30,48 @@ export default function AddProductForm() {
 
   const handleStockChange = (e) => setSelectedStock(e.target.value);
 
+  const formatPrice = (value) => {
+    // Remove all non-digit characters except decimal point
+    let cleanValue = value.replace(/[^\d.]/g, '');
+    
+    // Ensure only one decimal point
+    const decimalCount = (cleanValue.match(/\./g) || []).length;
+    if (decimalCount > 1) {
+      cleanValue = cleanValue.substring(0, cleanValue.lastIndexOf('.'));
+    }
+    
+    // Split into integer and decimal parts
+    const parts = cleanValue.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts.length > 1 ? parts[1] : '';
+    
+    // Limit decimal part to 2 digits
+    if (decimalPart.length > 2) {
+      decimalPart = decimalPart.slice(0, 2);
+    }
+    
+    // Add commas to integer part (from the right)
+    if (integerPart) {
+      integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    // Combine parts
+    let formattedValue = integerPart;
+    if (decimalPart) {
+      formattedValue += '.' + decimalPart;
+    } else if (cleanValue.includes('.')) {
+      // If user typed decimal point but no digits yet
+      formattedValue += '.';
+    }
+    
+    return formattedValue;
+  };
+
+  const parsePrice = (formattedValue) => {
+    // Remove commas and return raw number for backend
+    return formattedValue.replace(/,/g, '');
+  };
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -40,6 +82,10 @@ export default function AddProductForm() {
         reader.onload = () => setImagePreview(reader.result);
         reader.readAsDataURL(files[0]);
       } else setImagePreview(null);
+    } else if (name === "price") {
+      // Format the price display
+      const formattedPrice = formatPrice(value);
+      setFormData({ ...formData, [name]: formattedPrice });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -48,14 +94,23 @@ export default function AddProductForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedStock) return toast.error("Please select a stock item.");
-    if (Number(formData.price) <= 0) return toast.error("Price must be a positive number.");
+    if (!selectedStock) {
+      toast.error("Please select a stock item.");
+      return;
+    }
+    
+    // Parse the formatted price back to raw number for validation
+    const rawPrice = parsePrice(formData.price);
+    if (Number(rawPrice) <= 0) {
+      toast.error("Price must be a positive number.");
+      return;
+    }
 
     setIsSubmitting(true);
     const data = new FormData();
     data.append("stockId", selectedStock);
     data.append("description", formData.description);
-    data.append("price", formData.price);
+    data.append("price", rawPrice); // Send raw price without commas
     data.append("image", formData.image);
 
     try {
@@ -67,7 +122,8 @@ export default function AddProductForm() {
       setFormData({ description: "", price: "", image: null });
       setImagePreview(null);
       navigate("/product");
-    } catch {
+    } catch (error) {
+      console.error("Error adding product:", error);
       toast.error("Failed to add product");
     } finally {
       setIsSubmitting(false);
@@ -78,6 +134,7 @@ export default function AddProductForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex items-center justify-center">
+
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <button
@@ -149,7 +206,7 @@ export default function AddProductForm() {
 
             {/* Price and Image */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+              <div className="space-y-2">
                 <label className="flex items-center text-lg font-medium text-gray-700">
                   <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price <span className="text-red-500">*</span>
                 </label>
@@ -158,25 +215,17 @@ export default function AddProductForm() {
                     <span className="text-gray-500">Rs</span>
                   </div>
                   <input
-                    type="text" 
+                    type="text"
                     name="price"
                     placeholder="0.00"
                     value={formData.price}
-                    onChange={(e) => {
-                      
-                      let value = e.target.value.replace(/[^0-9.]/g, "");
-                      const parts = value.split(".");
-                      if (parts.length > 2) {
-                        value = parts[0] + "." + parts[1]; 
-                      }
-                      handleChange({ target: { name: "price", value } });
-                    }}
+                    onChange={handleChange}
                     className="w-full pl-8 p-4 border border-gray-300 rounded-xl bg-white text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
+                <p className="text-sm text-gray-500">Format: 300,000.00 or 300,000.39</p>
               </div>
-
 
               <div className="space-y-2">
                 <label className="flex items-center text-lg font-medium text-gray-700">

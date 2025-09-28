@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { FaComment, FaStar, FaUser, FaCalendar, FaTrash, FaSync } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 export default function AdminFeedbackPage() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -16,15 +16,28 @@ export default function AdminFeedbackPage() {
 
   const fetchFeedbacks = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/feedback");
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
+        toast.error("Admin token not found. Please log in again.");
+        return;
+      }
+  
+      const res = await axios.get("http://localhost:5001/api/feedback", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setFeedbacks(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching feedbacks:", err.response || err.message);
+      toast.error("Failed to fetch feedback. Please try again later.");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
+  
+  
 
   // Manual refresh function
   const handleRefresh = () => {
@@ -46,14 +59,10 @@ const handleDelete = async (id) => {
       },
     });
     setFeedbacks(feedbacks.filter((f) => f._id !== id));
-    toast.success("Feedback deleted successfully!", {
-      position: "top-center",
-    });
+    toast.success("Feedback deleted successfully!");
   } catch (err) {
     console.error(err);
-    toast.error("Delete failed. Admin only!", {
-      position: "top-center",
-    });
+    toast.error("Delete failed. Admin only!");
   }
 };
 
