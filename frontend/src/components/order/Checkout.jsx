@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FaHome, FaStore, FaMapMarkerAlt, FaCreditCard, FaMoneyBillWave, FaUpload, FaShoppingBag, FaShippingFast, FaLock, FaArrowLeft } from "react-icons/fa";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../User/UserNavbar";
 import Footer from "../User/UserFooter";
 import { toast, ToastContainer } from "react-toastify";
@@ -18,6 +18,7 @@ const Checkout = () => {
   const [user, setUser] = useState(null);
   const [notes, setNotes] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const token = localStorage.getItem("token");
 
@@ -53,8 +54,38 @@ const Checkout = () => {
   };
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    // Check if coming from Buy Now with single product
+    if (location.state && location.state.product) {
+      const { product, quantity = 1 } = location.state;
+      // Create a temporary cart with the single product
+      const singleProductCart = [{
+        ...product,
+        quantity: quantity,
+        name: product.stock?.name || product.description,
+        price: product.price
+      }];
+      setCart(singleProductCart);
+      
+      // Fetch user data only
+      if (token) {
+        axios.get("http://localhost:5001/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(userRes => {
+          setUser(userRes.data);
+          setAddress(userRes.data.address || "");
+        })
+        .catch(userErr => {
+          console.error("Failed to fetch user data:", userErr);
+        });
+      }
+      
+      setLoading(false);
+    } else {
+      // Normal cart checkout
+      fetchCart();
+    }
+  }, [location.state]);
 
   const handleSlipChange = (e) => {
     const file = e.target.files[0];
@@ -100,6 +131,26 @@ const Checkout = () => {
     try {
       setLoading(true);
       
+      // Check if it's a single product order (Buy Now)
+      const isSingleProduct = location.state && location.state.product;
+      
+      if (isSingleProduct) {
+        // For single product, first add it to cart
+        const product = location.state.product;
+        const quantity = location.state.quantity || 1;
+        
+        try {
+          await axios.post(
+            "http://localhost:5001/api/cart/add",
+            { productId: product._id, quantity: quantity },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (addToCartError) {
+          console.error("Failed to add product to cart:", addToCartError);
+          // Continue with order even if adding to cart fails
+        }
+      }
+
       // Prepare the data according to your backend expectations
       const orderData = {
         deliveryMethod: deliveryMethod,
@@ -222,6 +273,7 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <ToastContainer position="top-center" />
       <Navbar />
       <div className="flex-grow py-8 px-4">
         <div className="max-w-6xl mx-auto">
@@ -240,6 +292,11 @@ const Checkout = () => {
             <p className="text-blue-600">Complete your purchase securely</p>
             <div className="mt-2 text-sm text-blue-500">
               {cart.length} item{cart.length !== 1 ? 's' : ''} in your cart
+              {location.state && location.state.product && (
+                <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                  Quick Buy
+                </span>
+              )}
             </div>
           </div>
 
@@ -385,8 +442,8 @@ const Checkout = () => {
 
                 {/* Order Items */}
                 <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
-                  {cart.map((item) => (
-                    <div key={item.product || item._id} className="flex items-center gap-3 p-3 bg-blue-50 rounded-2xl">
+                  {cart.map((item, index) => (
+                    <div key={item.product || item._id || index} className="flex items-center gap-3 p-3 bg-blue-50 rounded-2xl">
                       <img
                         src={`http://localhost:5001/${item.image}`}
                         alt={item.name}

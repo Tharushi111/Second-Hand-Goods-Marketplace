@@ -103,7 +103,7 @@ const ProductListing = () => {
     }
   };
 
-  // Buy Now - directly to checkout with product
+  // Buy Now - directly to checkout with the product
   const handleBuyNow = (product) => {
     if (!token) {
       toast.error("Please login first");
@@ -115,6 +115,7 @@ const ProductListing = () => {
       return;
     }
 
+    // Navigate to checkout with the product data
     navigate("/checkout", { state: { product, quantity: 1 } });
   };
 
