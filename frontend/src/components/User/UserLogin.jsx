@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Eye, EyeOff, Mail, Lock, Loader, User, ArrowRight } from "lucide-react";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";

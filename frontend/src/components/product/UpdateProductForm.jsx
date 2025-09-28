@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast} from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaBox, FaTag, FaDollarSign, FaAlignLeft, FaSave } from "react-icons/fa";
 
@@ -20,6 +20,57 @@ export default function UpdateProductForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Format price to 300,000.00 format
+  const formatPrice = (price) => {
+    return parseFloat(price || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  // Parse price input for formatting
+  const formatPriceInput = (value) => {
+    // Remove all non-digit characters except decimal point
+    let cleanValue = value.replace(/[^\d.]/g, '');
+    
+    // Ensure only one decimal point
+    const decimalCount = (cleanValue.match(/\./g) || []).length;
+    if (decimalCount > 1) {
+      cleanValue = cleanValue.substring(0, cleanValue.lastIndexOf('.'));
+    }
+    
+    // Split into integer and decimal parts
+    const parts = cleanValue.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts.length > 1 ? parts[1] : '';
+    
+    // Limit decimal part to 2 digits
+    if (decimalPart.length > 2) {
+      decimalPart = decimalPart.slice(0, 2);
+    }
+    
+    // Add commas to integer part (from the right)
+    if (integerPart) {
+      integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    // Combine parts
+    let formattedValue = integerPart;
+    if (decimalPart) {
+      formattedValue += '.' + decimalPart;
+    } else if (cleanValue.includes('.')) {
+      // If user typed decimal point but no digits yet
+      formattedValue += '.';
+    }
+    
+    return formattedValue;
+  };
+
+  const parsePrice = (formattedValue) => {
+    // Remove commas and return raw number for backend
+    return formattedValue.replace(/,/g, '');
+  };
+
   // Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
@@ -28,7 +79,7 @@ export default function UpdateProductForm() {
         const res = await axios.get(`http://localhost:5001/api/products/${id}`);
         setFormData({
           description: res.data.description,
-          price: res.data.price,
+          price: formatPrice(res.data.price.toString()),
           image: null,
         });
         setSelectedStock(res.data.stock._id);
@@ -80,6 +131,9 @@ export default function UpdateProductForm() {
         setFormData({ ...formData, image: null });
         setImagePreview(null);
       }
+    } else if (name === "price") {
+      // Format price input
+      setFormData({ ...formData, [name]: formatPriceInput(value) });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -89,16 +143,27 @@ export default function UpdateProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedStock) return toast.error("Please select a stock item");
-    if (!formData.description.trim()) return toast.error("Description is required");
-    if (!formData.price || Number(formData.price) <= 0) return toast.error("Price must be greater than 0");
+    if (!selectedStock) {
+      toast.error("Please select a stock item");
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Description is required");
+      return;
+    }
+    
+    const parsedPrice = parsePrice(formData.price);
+    if (!parsedPrice || parsedPrice <= 0) {
+      toast.error("Price must be greater than 0");
+      return;
+    }
 
     setIsSubmitting(true);
 
     const data = new FormData();
     data.append("stockId", selectedStock);
     data.append("description", formData.description);
-    data.append("price", formData.price);
+    data.append("price", parsedPrice.toString());
     if (formData.image) data.append("image", formData.image);
 
     try {
@@ -127,6 +192,7 @@ export default function UpdateProductForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex items-center justify-center">
+
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <button
@@ -213,26 +279,25 @@ export default function UpdateProductForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Price */}
               <div className="space-y-2">
-              <label className="flex items-center text-lg font-medium text-gray-700">
-                <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price
-              </label>
+                <label className="flex items-center text-lg font-medium text-gray-700">
+                  <span className="mr-2 text-blue-500 font-semibold">Rs.</span> Price
+                </label>
 
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span className="text-gray-500">Rs.</span>
                   </div>
                   <input
-                    type="number"
+                    type="text"
                     name="price"
                     placeholder="0.00"
                     value={formData.price}
                     onChange={handleChange}
-                    min="0"
-                    step="0.01"
                     className="w-full pl-8 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
                     required
                   />
                 </div>
+                <p className="text-sm text-gray-500">Format: 300,000.00 or 300,000.39</p>
               </div>
 
               {/* Image Upload */}

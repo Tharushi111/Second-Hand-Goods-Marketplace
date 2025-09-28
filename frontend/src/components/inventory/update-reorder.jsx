@@ -76,7 +76,7 @@ const UpdateReorderForm = () => {
 
           {/* Title */}
           <div>
-            <label className="block mb-1 font-medium">Title*</label>
+            <label className="block mb-1 font-medium">Title<span className="text-red-500">*</span></label>
             <input
               type="text"
               name="title"
@@ -89,7 +89,7 @@ const UpdateReorderForm = () => {
 
           {/* Quantity */}
           <div>
-            <label className="block mb-1 font-medium">Quantity*</label>
+            <label className="block mb-1 font-medium">Quantity<span className="text-red-500">*</span></label>
             <input
               type="text"
               name="quantity"
@@ -102,7 +102,7 @@ const UpdateReorderForm = () => {
 
           {/* Category */}
           <div>
-            <label className="block mb-1 font-medium">Category*</label>
+            <label className="block mb-1 font-medium">Category<span className="text-red-500">*</span></label>
             <input
               type="text"
               name="category"
@@ -115,7 +115,7 @@ const UpdateReorderForm = () => {
 
           {/* Priority */}
           <div>
-            <label className="block mb-1 font-medium">Priority*</label>
+            <label className="block mb-1 font-medium">Priority<span className="text-red-500">*</span></label>
             <div className="grid grid-cols-3 gap-2">
               {["Low", "Normal", "High"].map(level => (
                 <button
@@ -124,9 +124,11 @@ const UpdateReorderForm = () => {
                   onClick={() => handlePriority(level)}
                   className={`py-3 px-4 rounded-lg border text-center ${
                     form.priority === level
-                      ? level === "Low" ? "bg-green-100 border-green-500 text-green-700"
-                      : level === "Normal" ? "bg-yellow-100 border-yellow-500 text-yellow-700"
-                      : "bg-red-100 border-red-500 text-red-700"
+                      ? level === "Low" 
+                        ? "bg-green-100 border-green-500 text-green-700"
+                        : level === "Normal" 
+                        ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                        : "bg-red-100 border-red-500 text-red-700"
                       : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
@@ -138,7 +140,7 @@ const UpdateReorderForm = () => {
 
           {/* Description */}
           <div>
-            <label className="block mb-1 font-medium">Description*</label>
+            <label className="block mb-1 font-medium">Description<span className="text-red-500">*</span></label>
             <textarea
               name="description"
               value={form.description}

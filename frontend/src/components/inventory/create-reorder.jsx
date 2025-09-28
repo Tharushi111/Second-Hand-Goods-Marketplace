@@ -44,6 +44,12 @@ function ReorderRequestForm({ onSuccess }) {
     e.preventDefault();
     if (!validate()) return;
 
+    // Additional validation to prevent 0 quantity
+    if (Number(form.quantity) === 0) {
+      toast.error("Quantity must be greater than 0", { position: "top-center" });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await axios.post("http://localhost:5001/api/reorders", {
@@ -79,7 +85,7 @@ function ReorderRequestForm({ onSuccess }) {
 
           {/* Title */}
           <div>
-            <label className="block mb-1 font-medium">Title*</label>
+            <label className="block mb-1 font-medium">Title<span className="text-red-500">*</span></label>
             <input
               type="text"
               name="title"
@@ -95,7 +101,7 @@ function ReorderRequestForm({ onSuccess }) {
 
             {/* Quantity */}
             <div>
-              <label className="block mb-1 font-medium">Quantity*</label>
+              <label className="block mb-1 font-medium">Quantity<span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="quantity"
@@ -109,7 +115,7 @@ function ReorderRequestForm({ onSuccess }) {
 
             {/* Category */}
             <div>
-              <label className="block mb-1 font-medium">Category*</label>
+              <label className="block mb-1 font-medium">Category<span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="category"
@@ -124,7 +130,7 @@ function ReorderRequestForm({ onSuccess }) {
 
           {/* Priority */}
           <div>
-            <label className="block mb-1 font-medium">Priority*</label>
+            <label className="block mb-1 font-medium">Priority<span className="text-red-500">*</span></label>
             <div className="grid grid-cols-3 gap-2">
               {["Low", "Normal", "High"].map(level => (
                 <button
@@ -147,7 +153,7 @@ function ReorderRequestForm({ onSuccess }) {
 
           {/* Description */}
           <div>
-            <label className="block mb-1 font-medium">Description*</label>
+            <label className="block mb-1 font-medium">Description<span className="text-red-500">*</span></label>
             <textarea
               name="description"
               value={form.description}

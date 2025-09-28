@@ -26,6 +26,14 @@ const SupplierOffers = () => {
 
   const token = localStorage.getItem("adminToken");
 
+  // Function to format price with thousands separators and two decimal places
+  const formatPrice = (price) => {
+    return parseFloat(price || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
   const fetchOffers = async () => {
     try {
       const res = await axios.get("http://localhost:5001/api/offer", {
@@ -103,7 +111,7 @@ const SupplierOffers = () => {
       body: filteredOffers.map((offer) => [
         offer.title,
         offer.supplierId?.username || "N/A",
-        `Rs ${offer.pricePerUnit}`,
+        `Rs ${formatPrice(offer.pricePerUnit)}`,
         offer.quantityOffered,
         offer.status,
       ]),
@@ -361,7 +369,7 @@ const SupplierOffers = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <span className="font-medium text-gray-900">
-                          Rs {offer.pricePerUnit}
+                          Rs {formatPrice(offer.pricePerUnit)}
                         </span>
                       </div>
                     </td>

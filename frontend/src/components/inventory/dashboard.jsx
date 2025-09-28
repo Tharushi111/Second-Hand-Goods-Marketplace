@@ -127,78 +127,93 @@ const InventoryDashboard = () => {
   } = processInventoryData();
 
   // Generate PDF Report
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    const margin = 15;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    
-    // Header with logo
-    try {
-      doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 40, 40);
-    } catch (e) {
-      // Fallback if logo not found
-      doc.setFillColor(240, 240, 240);
-      doc.rect(margin, 15, 40, 40, 'F');
-      doc.setFontSize(10).setTextColor(150, 150, 150);
-      doc.text("ReBuy Logo", margin + 20, 35, { align: "center" });
-    }
+const generatePDF = () => {
+  const doc = new jsPDF();
+  const margin = 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Header with logo on left
+  try {
+    doc.addImage("/ReBuyLogo.png", "PNG", margin, 15, 20, 20);
+  } catch (e) {
+    // Fallback if logo not found
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, 15, 40, 40, 'F');
+    doc.setFontSize(10).setTextColor(150, 150, 150);
+    doc.text("ReBuy Logo", margin + 20, 35, { align: "center" });
+  }
 
-    // Company info
-    doc.setFontSize(16).setTextColor(40, 103, 178);
-    doc.text("ReBuy.lk Inventory Report", pageWidth / 2, 30, { align: "center" });
-    
-    doc.setFontSize(10).setTextColor(100, 100, 100);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, 40, { align: "center" });
-    doc.text(`Total Items Tracked: ${stocks.length}`, pageWidth / 2, 50, { align: "center" });
+  // Company details on right side
+  doc.setFontSize(10).setTextColor(100, 100, 100);
+  
+  // Company Name
+  doc.setFontSize(12).setTextColor(40, 103, 178);
+  doc.text("ReBuy.lk", pageWidth - margin, 23, { align: "right" });
+  
+  // Company Address
+  doc.setFontSize(9);
+  doc.text("123 Business Street, Colombo 03, Sri Lanka", pageWidth - margin, 28, { align: "right" });
+ 
+  // Contact Information
+  doc.text("Tel: +94 11 234 5678", pageWidth - margin, 32, { align: "right" });
+  doc.text("Email: info@rebuy.lk", pageWidth - margin, 36, { align: "right" });
+  
+  // Report title centered below
+  doc.setFontSize(16).setTextColor(40, 103, 178);
+  doc.text("Inventory Report", pageWidth / 2, 70, { align: "center" });
+  
+  doc.setFontSize(10).setTextColor(100, 100, 100);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, 78, { align: "center" });
+  doc.text(`Total Items Tracked: ${stocks.length}`, pageWidth / 2, 86, { align: "center" });
 
-    let startY = 70;
+  let startY = 100;
 
-    // Summary Statistics
-    doc.setFontSize(12).setTextColor(40, 40, 40);
-    doc.text("Inventory Summary", margin, startY);
-    
-    autoTable(doc, {
-      startY: startY + 10,
-      head: [['Metric', 'Count']],
-      body: [
-        ['Total Items', totalItems],
-        ['In Stock Items', inStockItems],
-        ['Low Stock Items', lowStockItems],
-        ['Out of Stock Items', outOfStockItems],
-        ['Total Categories', Object.keys(categoryQuantities).length],
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [40, 103, 178] },
-      margin: { left: margin, right: margin }
-    });
+  // Summary Statistics
+  doc.setFontSize(12).setTextColor(40, 40, 40);
+  doc.text("Inventory Summary", margin, startY);
+  
+  autoTable(doc, {
+    startY: startY + 10,
+    head: [['Metric', 'Count']],
+    body: [
+      ['Total Items', totalItems],
+      ['In Stock Items', inStockItems],
+      ['Low Stock Items', lowStockItems],
+      ['Out of Stock Items', outOfStockItems],
+      ['Total Categories', Object.keys(categoryQuantities).length],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [40, 103, 178] },
+    margin: { left: margin, right: margin }
+  });
 
-    // Detailed Inventory Table
-    const finalY = doc.lastAutoTable.finalY + 20;
-    doc.text("Detailed Inventory", margin, finalY);
-    
-    autoTable(doc, {
-      startY: finalY + 10,
-      head: [['Product Name', 'Category', 'Quantity', 'Reorder Level', 'Status']],
-      body: stocks.map(stock => {
-        const status = stock.quantity === 0 ? 'Out of Stock' : 
-                      stock.quantity <= stock.reorderLevel ? 'Low Stock' : 'In Stock';
-        return [
-          stock.name,
-          stock.category,
-          stock.quantity,
-          stock.reorderLevel,
-          status
-        ];
-      }),
-      theme: 'grid',
-      headStyles: { fillColor: [40, 103, 178] },
-      margin: { left: margin, right: margin },
-      styles: { fontSize: 8 },
-      pageBreak: 'auto'
-    });
+  // Detailed Inventory Table
+  const finalY = doc.lastAutoTable.finalY + 20;
+  doc.text("Detailed Inventory", margin, finalY);
+  
+  autoTable(doc, {
+    startY: finalY + 10,
+    head: [['Product Name', 'Category', 'Quantity', 'Reorder Level', 'Status']],
+    body: stocks.map(stock => {
+      const status = stock.quantity === 0 ? 'Out of Stock' : 
+                    stock.quantity <= stock.reorderLevel ? 'Low Stock' : 'In Stock';
+      return [
+        stock.name,
+        stock.category,
+        stock.quantity,
+        stock.reorderLevel,
+        status
+      ];
+    }),
+    theme: 'grid',
+    headStyles: { fillColor: [40, 103, 178] },
+    margin: { left: margin, right: margin },
+    styles: { fontSize: 8 },
+    pageBreak: 'auto'
+  });
 
-    doc.save(`inventory_report_${new Date().toISOString().split('T')[0]}.pdf`);
-  };
+  doc.save(`inventory_report_${new Date().toISOString().split('T')[0]}.pdf`);
+};
 
   // Chart Data Configurations
   const doughnutData = {
