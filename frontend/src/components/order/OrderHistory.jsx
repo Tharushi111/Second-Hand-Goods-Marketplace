@@ -22,7 +22,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { toast } from "react-toastify";
 import logo from '../../assets/ReBuyLogo.png';
 
 const OrderHistory = () => {
@@ -117,98 +117,232 @@ const OrderHistory = () => {
     try {
       const doc = new jsPDF();
       
-      // White background for header
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, 210, 40, 'F');
+      // Page dimensions
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
       
-      // Company logo image 
-      doc.addImage(logo, 'PNG', 10, 10, 20, 20); // x, y, width, height
+      // Background gradient effect
+      doc.setFillColor(240, 245, 255);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
       
-      // Company details - moved slightly to the right to accommodate logo
-      doc.setFontSize(10);
-      doc.setTextColor(75, 85, 99); 
-      doc.setFont(undefined, 'normal');
-      doc.text("ReBuy.lk", 130, 10);
-      doc.text("77A, Market Street, Colombo, Sri Lanka", 130, 15);
-      doc.text("Contact: +94 77 321 4567", 130, 20);
-      doc.text("Email: rebuy@gmail.com", 130, 25);
+      // Header with blue gradient background
+      doc.setFillColor(59, 130, 246);
+      doc.rect(0, 0, pageWidth, 60, 'F');
       
-      // Add a subtle border line
-      doc.setDrawColor(200, 200, 200);
-      doc.line(10, 40, 200, 40);
+      // Company logo
+      doc.addImage(logo, 'PNG', margin, 10, 25, 25);
       
-      // Order title in blue
+      // Company details in white
       doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont(undefined, 'bold');
+      doc.text("ReBuy.lk", pageWidth - margin, 20, { align: "right" });
+      
+      doc.setFontSize(9);
+      doc.setTextColor(235, 245, 255);
+      doc.setFont(undefined, 'normal');
+      doc.text("77A, Market Street, Colombo", pageWidth - margin, 28, { align: "right" });
+      doc.text("Sri Lanka | +94 77 321 4567", pageWidth - margin, 34, { align: "right" });
+      doc.text("rebuy@gmail.com | www.rebuy.lk", pageWidth - margin, 40, { align: "right" });
+      
+      // Invoice title
+      doc.setFontSize(20);
       doc.setTextColor(59, 130, 246);
       doc.setFont(undefined, 'bold');
-      doc.text(`ORDER INVOICE - ${order.orderNumber}`, 15, 55);
-      
-      // Order details in dark gray
-      doc.setFontSize(10);
-      doc.setTextColor(75, 85, 99);
-      doc.setFont(undefined, 'normal');
-      doc.text(`Order Date: ${formatDate(order.createdAt)}`, 15, 65);
-      doc.text(`Status: ${getStatusText(order.status)}`, 15, 70);
-      doc.text(`Customer: ${order.customer?.username || 'N/A'}`, 15, 75);
-      doc.text(`Email: ${order.customer?.email || 'N/A'}`, 15, 80);
-      
-      // Delivery info
-      doc.text(`Delivery Method: ${order.deliveryMethod === "store" ? "Store Pickup" : 
-               order.deliveryMethod === "different" ? "Different Address" : "Home Delivery"}`, 15, 90);
-      doc.text(`Payment Method: ${order.paymentMethod === "online" ? "Online Payment" : 
-               order.paymentMethod === "bank" ? "Bank Transfer" : "Cash on Delivery"}`, 15, 95);
-      
-      // Order items table
-      const tableColumn = ["Item", "Quantity", "Price", "Total"];
-      const tableRows = order.items.map(item => [
-        item.name.length > 30 ? item.name.substring(0, 30) + '...' : item.name,
-        item.quantity.toString(),
-        `Rs. ${formatPrice(item.price)}`,
-        `Rs. ${formatPrice(item.price * item.quantity)}`
-      ]);
-      
-      autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 105,
-        theme: 'grid',
-        styles: { 
-          fontSize: 8,
-          cellPadding: 2,
-          textColor: [75, 85, 99]
-        },
-        headStyles: { 
-          fillColor: [59, 130, 246],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold'
-        },
-        margin: { left: 10, right: 10 }
-      });
-      
-      // Pricing summary
-      const finalY = doc.lastAutoTable.finalY + 10;
-      doc.setFontSize(10);
-      doc.setTextColor(75, 85, 99);
-      doc.text("Pricing Summary:", 15, finalY);
-      doc.text(`Subtotal: Rs. ${formatPrice(order.subtotal)}`, 150, finalY, { align: 'right' });
-      doc.text(`Delivery Charge: ${order.deliveryCharge === 0 ? "FREE" : `Rs. ${formatPrice(order.deliveryCharge)}`}`, 150, finalY + 5, { align: 'right' });
+      doc.text("ORDER INVOICE", pageWidth / 2, 80, { align: "center" });
       
       doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
+      doc.setTextColor(100, 116, 139);
+      doc.text(`#${order.orderNumber}`, pageWidth / 2, 88, { align: "center" });
+      
+      // Order and Delivery Information in two columns
+      const col1X = margin;
+      const col2X = pageWidth / 2 + 10;
+      let currentY = 105;
+      
+      // Order Information Box
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(col1X, currentY, pageWidth / 2 - 20, 60, 3, 3, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(col1X, currentY, pageWidth / 2 - 20, 60, 3, 3, 'S');
+      
+      // Order Info Title
+      doc.setFontSize(11);
       doc.setTextColor(59, 130, 246);
-      doc.text(`Total Amount: Rs. ${formatPrice(order.total)}`, 150, finalY + 15, { align: 'right' });
+      doc.setFont(undefined, 'bold');
+      doc.text("ORDER INFORMATION", col1X + 8, currentY + 8);
+      
+      // Order Details
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.setFont(undefined, 'normal');
+      
+      doc.text(`Order Date: ${formatDate(order.createdAt)}`, col1X + 8, currentY + 18);
+      doc.text(`Customer: ${order.customer?.username || 'N/A'}`, col1X + 8, currentY + 25);
+      doc.text(`Email: ${order.customer?.email || 'N/A'}`, col1X + 8, currentY + 32);
+      
+      doc.text(`Status: ${getStatusText(order.status)}`, col1X + 8, currentY + 42);
+      doc.text(`Payment: ${order.paymentMethod === "online" ? "Online Payment" : 
+               order.paymentMethod === "bank" ? "Bank Transfer" : "Cash on Delivery"}`, col1X + 8, currentY + 49);
+      
+      // Delivery Information Box
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(col2X, currentY, pageWidth / 2 - 20, 60, 3, 3, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(col2X, currentY, pageWidth / 2 - 20, 60, 3, 3, 'S');
+      
+      // Delivery Info Title
+      doc.setFontSize(11);
+      doc.setTextColor(59, 130, 246);
+      doc.setFont(undefined, 'bold');
+      doc.text("DELIVERY INFORMATION", col2X + 8, currentY + 8);
+      
+      // Delivery Details
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      
+      const deliveryMethod = order.deliveryMethod === "store" ? "Store Pickup" : 
+                            order.deliveryMethod === "different" ? "Different Address" : "Home Delivery";
+      doc.text(`Method: ${deliveryMethod}`, col2X + 8, currentY + 18);
+      
+      // Display delivery address based on method
+      if (order.deliveryMethod === "different" && order.deliveryAddress) {
+        const addressLines = doc.splitTextToSize(
+          `${order.deliveryAddress.street || ''}, ${order.deliveryAddress.city || ''}, ${order.deliveryAddress.postalCode || ''}`,
+          pageWidth / 2 - 30
+        );
+        doc.text("Address:", col2X + 8, currentY + 25);
+        doc.text(addressLines, col2X + 25, currentY + 25);
+      } else if (order.deliveryMethod === "home" && order.customer) {
+        doc.text("Address: Customer's Registered Address", col2X + 8, currentY + 25);
+      } else if (order.deliveryMethod === "store") {
+        doc.text("Address: Store Pickup - Main Branch", col2X + 8, currentY + 25);
+      }
+      
+      if (order.deliveryCharge === 0) {
+        doc.setTextColor(34, 197, 94);
+        doc.text("Delivery: FREE", col2X + 8, currentY + 42);
+      } else {
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Delivery: Rs. ${formatPrice(order.deliveryCharge)}`, col2X + 8, currentY + 42);
+      }
+      
+      // Items Table
+      currentY += 75;
+      
+      // Table Header
+      doc.setFillColor(59, 130, 246);
+      doc.roundedRect(margin, currentY, pageWidth - margin * 2, 12, 2, 2, 'F');
+      
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont(undefined, 'bold');
+      doc.text("ITEM", margin + 5, currentY + 8);
+      doc.text("QUANTITY", margin + 120, currentY + 8);
+      doc.text("PRICE", margin + 150, currentY + 8);
+      
+      currentY += 15;
+      
+      // Table Rows
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.setFont(undefined, 'normal');
+      
+      order.items.forEach((item, index) => {
+        if (currentY > pageHeight - 60) {
+          doc.addPage();
+          currentY = margin;
+        }
+        
+        // Alternate row background
+        if (index % 2 === 0) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(margin, currentY, pageWidth - margin * 2, 10, 'F');
+        }
+        
+        // Item name (truncate if too long)
+        const itemName = item.name.length > 35 ? item.name.substring(0, 35) + '...' : item.name;
+        doc.text(itemName, margin + 5, currentY + 7);
+        
+        // Quantity
+        doc.text(item.quantity.toString(), margin + 120, currentY + 7);
+        
+        // Price
+        doc.text(`Rs. ${formatPrice(item.price)}`, margin + 150, currentY + 7);
+        
+        currentY += 10;
+      });
+      
+      // Summary Section
+      currentY += 10;
+      
+      // Summary Box
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(pageWidth - 90, currentY, 75, 45, 3, 3, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(pageWidth - 90, currentY, 75, 45, 3, 3, 'S');
+      
+      // Summary Title
+      doc.setFontSize(10);
+      doc.setTextColor(59, 130, 246);
+      doc.setFont(undefined, 'bold');
+      doc.text("ORDER SUMMARY", pageWidth - 85, currentY + 8);
+      
+      // Summary Details
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.setFont(undefined, 'normal');
+      
+      doc.text(`Subtotal:`, pageWidth - 85, currentY + 18);
+      doc.text(`Rs. ${formatPrice(order.subtotal)}`, pageWidth - 20, currentY + 18, { align: "right" });
+      
+      doc.text(`Delivery:`, pageWidth - 85, currentY + 26);
+      if (order.deliveryCharge === 0) {
+        doc.setTextColor(34, 197, 94);
+        doc.text("FREE", pageWidth - 20, currentY + 26, { align: "right" });
+      } else {
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Rs. ${formatPrice(order.deliveryCharge)}`, pageWidth - 20, currentY + 26, { align: "right" });
+      }
+      
+      // Total
+      doc.setDrawColor(226, 232, 240);
+      doc.line(pageWidth - 85, currentY + 30, pageWidth - 20, currentY + 30);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(59, 130, 246);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total:`, pageWidth - 85, currentY + 40);
+      doc.text(`Rs. ${formatPrice(order.total)}`, pageWidth - 20, currentY + 40, { align: "right" });
       
       // Footer
+      const footerY = pageHeight - 20;
+      
       doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text("Thank you for shopping with ReBuy.lk!", 105, 280, { align: 'center' });
-      doc.text("This is a computer-generated invoice.", 105, 285, { align: 'center' });
+      doc.setTextColor(148, 163, 184);
+      doc.setFont(undefined, 'normal');
+      doc.text("Thank you for choosing ReBuy.lk - Your trusted shopping partner", pageWidth / 2, footerY - 8, { align: "center" });
+      doc.text(`Invoice generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, pageWidth / 2, footerY, { align: "center" });
+      
+      // Decorative elements
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(0.5);
+      doc.line(margin, footerY - 15, pageWidth - margin, footerY - 15);
       
       // Save the PDF
-      doc.save(`order-${order.orderNumber}.pdf`);
+      doc.save(`order-invoice-${order.orderNumber}.pdf`);
       
     } catch (error) {
       console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF", {
+        position: "top-center",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setDownloadingPdf(false);
     }

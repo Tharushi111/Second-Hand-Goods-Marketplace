@@ -36,6 +36,41 @@ export default function SupplierOfferList() {
     quantityOffered: "",
     deliveryDate: "",
   });
+  const [displayPrice, setDisplayPrice] = useState("");
+
+  // Format price with thousand separators and two decimal places
+  const formatPrice = (value) => {
+    if (!value && value !== 0) return "";
+    
+    // Convert to string and remove any existing formatting
+    const stringValue = value.toString().replace(/,/g, '');
+    
+    // Split into integer and decimal parts
+    const parts = stringValue.split('.');
+    let integerPart = parts[0];
+    let decimalPart = parts[1] || '';
+    
+    // Format integer part with thousand separators
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Ensure decimal part has exactly 2 digits
+    if (decimalPart.length > 2) {
+      decimalPart = decimalPart.substring(0, 2);
+    } else if (decimalPart.length < 2) {
+      decimalPart = decimalPart.padEnd(2, '0');
+    }
+    
+    // Combine parts
+    if (decimalPart) {
+      return `${integerPart}.${decimalPart}`;
+    }
+    return integerPart + '.00';
+  };
+
+  // Parse formatted price back to raw number for form data
+  const parsePrice = (formattedValue) => {
+    return formattedValue.replace(/,/g, '');
+  };
 
   // Decode JWT to get supplier ID 
   const getSupplierIdFromToken = () => {
@@ -107,16 +142,37 @@ export default function SupplierOfferList() {
     }
   };
 
+  // Handle Price Change in Modal
+  const handlePriceChange = (e) => {
+    const value = e.target.value;
+    
+    // Allow empty value or format the input
+    if (value === "") {
+      setDisplayPrice("");
+      setFormData(prev => ({ ...prev, pricePerUnit: "" }));
+      return;
+    }
+    
+    const formattedValue = formatPrice(value);
+    setDisplayPrice(formattedValue);
+    
+    // Update form data with raw numeric value (without commas)
+    const rawValue = parsePrice(formattedValue);
+    setFormData(prev => ({ ...prev, pricePerUnit: rawValue }));
+  };
+
   // Handle Open Edit Modal
   const handleEdit = (offer) => {
     setSelectedOffer(offer._id);
+    const formattedPrice = formatPrice(offer.pricePerUnit);
     setFormData({
       title: offer.title,
       description: offer.description,
-      pricePerUnit: offer.pricePerUnit,
+      pricePerUnit: offer.pricePerUnit.toString(),
       quantityOffered: offer.quantityOffered,
       deliveryDate: offer.deliveryDate ? offer.deliveryDate.split("T")[0] : "",
     });
+    setDisplayPrice(formattedPrice);
     setShowModal(true);
   };
 
@@ -136,6 +192,7 @@ export default function SupplierOfferList() {
       toast.success("Offer updated successfully!");
       setShowModal(false);
       setSelectedOffer(null);
+      setDisplayPrice("");
       fetchOffers();
     } catch (err) {
       console.error(err);
@@ -381,7 +438,7 @@ export default function SupplierOfferList() {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="font-bold text-blue-600">Rs {offer.pricePerUnit}</span>
+                        <span className="font-bold text-blue-600">Rs {formatPrice(offer.pricePerUnit)}</span>
                       </td>
                       <td className="py-4 px-6">
                         <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -505,13 +562,11 @@ export default function SupplierOfferList() {
                 <div>
                   <label className="block text-sm font-medium text-blue-700 mb-2">Price (Rs)</label>
                   <input
-                    type="number"
+                    type="text"
                     placeholder="0.00"
-                    value={formData.pricePerUnit}
-                    onChange={(e) => setFormData({ ...formData, pricePerUnit: e.target.value })}
+                    value={displayPrice}
+                    onChange={handlePriceChange}
                     className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50 text-blue-900"
-                    min="0"
-                    step="0.01"
                     required
                   />
                 </div>

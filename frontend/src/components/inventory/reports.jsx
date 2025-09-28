@@ -11,6 +11,14 @@ export default function StockReport() {
   const [isLoading, setIsLoading] = useState(true);
   const [reportDate] = useState(new Date());
 
+  // Format currency function
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   // Fetch stock data from backend
   useEffect(() => {
     const fetchStocks = async () => {
@@ -73,52 +81,52 @@ export default function StockReport() {
       email: "rebuy@gmail.com"
     };
 
-    // Add logo image (replace canvas)
+    // Add logo image on left side
     doc.addImage(logo, 'PNG', margin, 10, 25, 25);
     
-    // Company details
-    doc.setFontSize(16);
+    // Company details on right side
+    doc.setFontSize(10);
     doc.setTextColor(...blueDark);
     doc.setFont(undefined, 'bold');
-    doc.text(companyDetails.name, margin + 30, 18);
+    doc.text(companyDetails.name, pageWidth - margin, 15, { align: "right" });
     
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     doc.setFont(undefined, 'normal');
-    doc.text(companyDetails.address, margin + 30, 25);
-    doc.text(`Contact: ${companyDetails.contact}`, margin + 30, 30);
-    doc.text(`Email: ${companyDetails.email}`, margin + 30, 35);
+    doc.text(companyDetails.address, pageWidth - margin, 20, { align: "right" });
+    doc.text(`Contact: ${companyDetails.contact}`, pageWidth - margin, 25, { align: "right" });
+    doc.text(`Email: ${companyDetails.email}`, pageWidth - margin, 30, { align: "right" });
 
-    // Report title and date
+    // Report title and date in center
     doc.setFontSize(14);
     doc.setTextColor(...blueDark);
     doc.setFont(undefined, 'bold');
-    doc.text("STOCK INVENTORY REPORT", pageWidth - margin, 25, { align: "right" });
+    doc.text("STOCK INVENTORY REPORT", pageWidth / 2, 45, { align: "center" });
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.setFont(undefined, 'normal');
-    doc.text(`Generated: ${reportDate.toLocaleDateString()} ${reportDate.toLocaleTimeString()}`, pageWidth - margin, 30, { align: "right" });
+    doc.text(`Generated: ${reportDate.toLocaleDateString()} ${reportDate.toLocaleTimeString()}`, pageWidth / 2, 50, { align: "center" });
 
     // Separator line
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, 40, pageWidth - margin, 40);
+    doc.line(margin, 55, pageWidth - margin, 55);
 
     // Executive summary with blue accents
     doc.setFontSize(12);
     doc.setTextColor(...blueDark);
     doc.setFont(undefined, 'bold');
-    doc.text("EXECUTIVE SUMMARY", margin, 55);
+    doc.text("EXECUTIVE SUMMARY", margin, 70);
     doc.setFontSize(9);
     doc.setTextColor(...blueText);
     doc.setFont(undefined, 'normal');
     
     const summaryData = [
-      [`Total Products: ${totalProducts}`, `Total Inventory Value: Rs.${totalValue.toLocaleString()}`],
+      [`Total Products: ${totalProducts}`, `Total Inventory Value: Rs.${formatCurrency(totalValue)}`],
       [`Items In Stock: ${inStock}`, `Low Stock Items: ${lowStock}`],
       [`Out of Stock: ${outOfStock}`, `Report Date: ${reportDate.toLocaleDateString()}`],
     ];
     
-    let yPos = 65;
+    let yPos = 80;
     summaryData.forEach((row) => {
       doc.text(row[0], margin, yPos);
       doc.text(row[1], pageWidth / 2, yPos);
@@ -133,7 +141,7 @@ export default function StockReport() {
         category,
         data.items.toString(),
         data.total.toString(),
-        `Rs.${data.value.toLocaleString()}`,
+        `Rs.${formatCurrency(data.value)}`,
       ]),
       styles: { 
         fontSize: 8,
@@ -163,8 +171,8 @@ export default function StockReport() {
         s.quantity.toString(),
         s.reorderLevel.toString(),
         s.quantity === 0 ? "Out of Stock" : s.quantity <= s.reorderLevel ? "Low Stock" : "In Stock",
-        `Rs.${s.unitPrice}`,
-        `Rs.${(s.quantity * s.unitPrice).toLocaleString()}`,
+        `Rs.${formatCurrency(s.unitPrice)}`,
+        `Rs.${formatCurrency(s.quantity * s.unitPrice)}`,
       ]),
       styles: { 
         fontSize: 7,
@@ -229,7 +237,7 @@ export default function StockReport() {
             </div>
             <div className="bg-blue-100 p-4 rounded-lg border border-blue-300">
               <p className="text-sm text-blue-800 font-medium">Total Value</p>
-              <p className="text-2xl font-bold text-blue-900">Rs.{totalValue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-blue-900">Rs.{formatCurrency(totalValue)}</p>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-700 font-medium">Low Stock Items</p>
@@ -261,7 +269,7 @@ export default function StockReport() {
                     <td className="px-4 py-3 font-medium text-gray-900">{cat}</td>
                     <td className="px-4 py-3 text-center text-gray-700">{data.items}</td>
                     <td className="px-4 py-3 text-center text-gray-700">{data.total}</td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-900">Rs.{data.value.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900">Rs.{formatCurrency(data.value)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -303,9 +311,9 @@ export default function StockReport() {
                         {status.text}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-900">Rs.{stock.unitPrice}</td>
+                    <td className="px-4 py-3 text-right text-gray-900">Rs.{formatCurrency(stock.unitPrice)}</td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900">
-                      Rs.{(stock.quantity * stock.unitPrice).toLocaleString()}
+                      Rs.{formatCurrency(stock.quantity * stock.unitPrice)}
                     </td>
                   </tr>
                 );
