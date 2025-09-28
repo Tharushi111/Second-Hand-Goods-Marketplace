@@ -96,16 +96,21 @@ orderSchema.pre("save", async function (next) {
   }
 
   if (this.isModified("status")) {
-    this.history.push({
-      status: this.status,
-      updatedAt: new Date(),
-      note: `Status changed to ${this.status}`,
-      updatedBy: "system",
-    });
+    const lastHistory = this.history[this.history.length - 1];
+
+    if (!lastHistory || lastHistory.status !== this.status) {
+      this.history.push({
+        status: this.status,
+        updatedAt: new Date(),
+        note: `Status changed to ${this.status}`,
+        updatedBy: "system",
+      });
+    }
   }
 
   next();
 });
+
 
 orderSchema.virtual("summary").get(function () {
   return {

@@ -35,7 +35,8 @@ export const getCheckoutSummary = async (req, res) => {
     }));
 
     const subtotal = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
-    const deliveryCharge = 1300; // flat rate
+    const deliveryMethod = req.query.deliveryMethod || "home"; 
+    const deliveryCharge = deliveryMethod === "store" ? 0 : 1300;
     const total = subtotal + deliveryCharge;
 
     res.json({ items, subtotal, deliveryCharge, total });
@@ -94,9 +95,8 @@ export const placeOrder = async (req, res) => {
     }));
 
     const subtotal = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
-    const deliveryCharge = 1300;
+    const deliveryCharge = deliveryMethod === "store" ? 0 : 1300;
     const total = subtotal + deliveryCharge;
-
     const order = await Order.create({
       user: user._id,
       items,
