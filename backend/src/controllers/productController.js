@@ -15,7 +15,7 @@ export const addProduct = async (req, res) => {
 
     const newProduct = new Product({
       stock: stockItem._id,
-      category: stockItem.category, // auto from stock
+      category: stockItem.category, 
       description,
       price,
       image,
@@ -40,7 +40,7 @@ export const updateProduct = async (req, res) => {
       const stockItem = await Stock.findById(stockId);
       if (!stockItem) return res.status(400).json({ message: "Invalid stock selected" });
       updateData.stock = stockItem._id;
-      updateData.category = stockItem.category; // auto from stock
+      updateData.category = stockItem.category; 
     }
     if (image) updateData.image = image;
 
