@@ -19,7 +19,7 @@ export default function ProductTable() {
 
   const navigate = useNavigate();
 
-  // Format price to 300,000.00 format
+  // Format price 
   const formatPrice = (price) => {
     return parseFloat(price || 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,
