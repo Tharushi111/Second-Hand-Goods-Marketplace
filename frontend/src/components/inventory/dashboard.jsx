@@ -215,7 +215,7 @@ const generatePDF = () => {
   doc.save(`inventory_report_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
-  // Chart Data Configurations
+  // Chart Data
   const doughnutData = {
     labels: ['In Stock', 'Low Stock', 'Out of Stock'],
     datasets: [
