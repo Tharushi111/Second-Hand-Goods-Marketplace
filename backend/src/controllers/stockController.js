@@ -11,7 +11,7 @@ export const getAllStocks = async (req, res) => {
     // Always return an array (even if empty)
     const formattedStocks = Array.isArray(stocks)
       ? stocks.map(stock => ({
-          ...stock._doc, // spread document fields
+          ...stock._doc, 
           unitPriceDisplay: stock.unitPrice != null ? `Rs ${stock.unitPrice.toLocaleString()}` : "N/A",
           totalPriceDisplay: stock.totalPrice != null ? `Rs ${stock.totalPrice.toLocaleString()}` : "N/A",
           updatedAtDisplay: stock.updatedAt ? stock.updatedAt.toLocaleString() : "N/A",
