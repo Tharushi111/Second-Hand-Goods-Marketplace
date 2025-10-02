@@ -1,10 +1,10 @@
-🚀 ReBuy.lk – Second-Hand Goods Marketplace
+**🚀 ReBuy.lk – Second-Hand Goods Marketplace.**
 
-💡 Description:
+**💡 Description:**
 ReBuy.lk is a MERN stack web application for buying and selling second-hand goods. Suppliers provide products, the platform manages stock, and customers can browse, buy, and track their orders. 
 The system ensures smooth inventory management, supplier coordination, and user account management for a seamless marketplace experience. ♻️🛍
 
-👩‍💻 Team Members & Responsibilities
+**👩‍💻 Team Members & Responsibilities**
 
 | **Member**          | **Function / Responsibility**       |
 | ------------------- | ----------------------------------- |
@@ -14,7 +14,7 @@ The system ensures smooth inventory management, supplier coordination, and user 
 | Danindu Wijesinghe  | User Access & Account Management    |
 | Roshen Fernando     | Supplier Management                 |
 
-🛠 Technologies Used
+**🛠 Technologies Used**
 
 | Layer              | Technology / Tool           | Description                      |
 | ------------------ | --------------------------- | -------------------------------- |
@@ -26,12 +26,12 @@ The system ensures smooth inventory management, supplier coordination, and user 
 | **HTTP Requests**  | Axios                       | API communication                |
 | **Routing**        | React Router                | Frontend navigation              |
 
-🌟 Key Features
+**🌟 Key Features**
 
-User Features: Registration, login, browse products, place orders, profile management 👤
+- User Features: Registration, login, browse products, place orders, profile management 👤
 
-Admin Features: User, supplier, and inventory management, approve supplier offers 🛠
+- Admin Features: User, supplier, and inventory management, approve supplier offers 🛠
 
-Supplier Features: Respond to stock requests, Submit Supplier Offers 📦
+- Supplier Features: Respond to stock requests, Submit Supplier Offers 📦
 
-System Features: Inventory monitoring, reorder notifications, secure authentication 🔒
+- System Features: Inventory monitoring, reorder notifications, secure authentication 🔒
