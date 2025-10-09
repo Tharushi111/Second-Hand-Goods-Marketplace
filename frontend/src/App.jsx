@@ -19,6 +19,7 @@ import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
 import SupplierPage from "./components/supplier/supplier.jsx";
 import AdminOrders from "./components/order/AdminOrders.jsx";
 import OrderDetails from "./components/order/OrderDetails.jsx";
+import AdminHome from "./components/AdminHome.jsx";
 
 // User components
 import ProductListing from "./components/User/productListing.jsx";
@@ -131,7 +132,7 @@ function App() {
               path="/"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Admin Home Page</h2>
+                  <AdminHome />
                 </AdminPrivateRoute>
               }
             />
