@@ -37,7 +37,6 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/orders", orderRoutes); 
 
-
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5001;
 
