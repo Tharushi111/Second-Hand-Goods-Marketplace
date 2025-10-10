@@ -1,12 +1,9 @@
 # 🚀 **ReBuy.lk** – Second-Hand Goods Marketplace
 
---
-
 <p align="center">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/ReBuy.png?raw=true" alt="Project Logo" width="150"/>
 </p>
 
---
 
 **💡 Description:**  
 ReBuy.lk is a **MERN stack web application** for buying and selling **second-hand goods**. Suppliers provide products, the platform manages stock, and customers can browse, buy, and track their orders. The system ensures smooth **inventory management**, **supplier coordination**, and **user account management** for a seamless marketplace experience. ♻️🛍  
