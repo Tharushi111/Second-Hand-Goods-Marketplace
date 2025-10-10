@@ -62,12 +62,12 @@ const AddStockForm = () => {
       integerPart = parseInt(integerPart, 10).toLocaleString('en-US');
     }
     
-    // Handle decimal part - allow any digits but limit to 2 places
+    
     if (decimalPart !== '') {
       // Limit decimal part to 2 digits
       decimalPart = decimalPart.substring(0, 2);
     } else if (value.includes('.')) {
-      // If user typed decimal point but no digits, don't auto-fill
+      
       decimalPart = '';
     }
     

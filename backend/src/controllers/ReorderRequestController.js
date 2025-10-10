@@ -94,3 +94,63 @@ export const deleteReorderRequest = async (req, res) => {
     res.status(500).json({ error: "Failed to delete reorder request" });
   }
 };
+
+
+/* Add a reply to a reorder request */
+export const addReply = async (req, res) => {
+  try {
+    const { reply } = req.body;
+    if (!reply || reply.trim() === "") {
+      return res.status(400).json({ message: "Reply cannot be empty" });
+    }
+
+    const reorderRequest = await ReorderRequest.findById(req.params.id);
+    if (!reorderRequest) {
+      return res.status(404).json({ message: "Reorder request not found" });
+    }
+
+    reorderRequest.replies.push({
+      supplierId: req.user.id,
+      reply: reply.trim()
+    });
+
+    await reorderRequest.save();
+    res.status(200).json({ message: "Reply added successfully", replies: reorderRequest.replies });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add reply", error: err.message });
+  }
+};
+
+
+
+// Get all replies for admin
+export const getAllReplies = async (req, res) => {
+  try {
+    // Fetch all reorder requests that have replies
+    const requestsWithReplies = await ReorderRequest.find({ "replies.0": { $exists: true } })
+      .populate("replies.supplierId", "username email company") // populate supplier info
+      .sort({ createdAt: -1 });
+
+    // Flatten the replies so frontend can display them easily
+    const allReplies = [];
+    requestsWithReplies.forEach((request) => {
+      request.replies.forEach((reply) => {
+        allReplies.push({
+          reorderRequestId: request._id,
+          reorderTitle: request.title,
+          supplierId: reply.supplierId._id,
+          supplierName: reply.supplierId.username,
+          supplierEmail: reply.supplierId.email,
+          supplierCompany: reply.supplierId.company,
+          reply: reply.reply,
+          repliedAt: reply.createdAt,
+        });
+      });
+    });
+
+    res.json({ replies: allReplies });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch replies", error: err.message });
+  }
+};
+

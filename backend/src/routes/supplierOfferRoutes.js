@@ -25,4 +25,6 @@ router.get('/', verifyAdminToken, getAllOffers);
 router.patch('/:id/approve', verifyAdminToken, requireAdminRole('admin', 'super_admin'), approveOffer);
 router.patch('/:id/reject', verifyAdminToken, requireAdminRole('admin', 'super_admin'), rejectOffer);
 
+
+
 export default router;

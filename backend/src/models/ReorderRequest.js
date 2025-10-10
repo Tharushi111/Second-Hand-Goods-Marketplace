@@ -35,7 +35,16 @@ const reorderRequestSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  replies: [
+  {
+    supplierId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    reply: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
   }
+]
+
+
 });
 
 // Optional: virtual or method to format display text
