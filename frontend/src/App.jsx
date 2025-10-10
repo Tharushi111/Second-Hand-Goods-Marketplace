@@ -20,6 +20,7 @@ import SupplierPage from "./components/supplier/supplier.jsx";
 import AdminOrders from "./components/order/AdminOrders.jsx";
 import OrderDetails from "./components/order/OrderDetails.jsx";
 import AdminHome from "./components/AdminHome.jsx";
+import Delivery from "./components/delivery.jsx";
 
 
 // User components
@@ -210,7 +211,7 @@ function App() {
               path="/delivery"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Delivery Page</h2>
+                  <Delivery />
                 </AdminPrivateRoute>
               }
             />
