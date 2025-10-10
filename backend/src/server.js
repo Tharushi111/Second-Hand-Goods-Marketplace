@@ -14,6 +14,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
+import Delivery from "../../frontend/src/components/delivery.jsx";
 import multer from "multer"; 
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/orders", orderRoutes); 
 app.use("/api/stripe", stripeRoutes);
+app.use("/api/delivery", deliveryRoutes);
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5001;
