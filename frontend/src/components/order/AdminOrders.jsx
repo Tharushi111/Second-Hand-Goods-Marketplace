@@ -18,7 +18,11 @@ import {
   User,
   Mail,
   Phone,
-  Hash
+  Hash,
+  CreditCard,
+  Banknote,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 const AdminOrders = () => {
@@ -30,12 +34,12 @@ const AdminOrders = () => {
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [slipType, setSlipType] = useState("");
+  const [expandedRows, setExpandedRows] = useState(new Set());
   const navigate = useNavigate();
 
   const token = localStorage.getItem("adminToken");
   const API_BASE_URL = "http://localhost:5001";
 
-  // Enhanced status configuration with blue-themed colors
   const statusConfig = {
     pending: { 
       color: "bg-blue-50 text-blue-700 border border-blue-200", 
@@ -43,27 +47,27 @@ const AdminOrders = () => {
       label: "Pending"
     },
     transfer_pending: { 
-      color: "bg-cyan-50 text-cyan-700 border border-cyan-200", 
+      color: "bg-amber-50 text-amber-700 border border-amber-200", 
       icon: AlertCircle,
       label: "Transfer Pending"
     },
     confirmed: { 
-      color: "bg-indigo-50 text-indigo-700 border border-indigo-200", 
+      color: "bg-green-50 text-green-700 border border-green-200", 
       icon: CheckCircle,
       label: "Confirmed"
     },
     shipped: { 
-      color: "bg-sky-50 text-sky-700 border border-sky-200", 
+      color: "bg-purple-50 text-purple-700 border border-purple-200", 
       icon: Truck,
       label: "Shipped"
     },
     delivered: { 
-      color: "bg-teal-50 text-teal-700 border border-teal-200", 
+      color: "bg-emerald-50 text-emerald-700 border border-emerald-200", 
       icon: CheckCircle,
       label: "Delivered"
     },
     cancelled: { 
-      color: "bg-rose-50 text-rose-700 border border-rose-200", 
+      color: "bg-red-50 text-red-700 border border-red-200", 
       icon: X,
       label: "Cancelled"
     }
@@ -73,11 +77,9 @@ const AdminOrders = () => {
     if (price === null || price === undefined) return 'Rs. 0.00';
     
     return new Intl.NumberFormat('en-LK', {
-      style: 'currency',
-      currency: 'LKR',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(price).replace('LKR', 'Rs.');
+    }).format(price);
   };
 
   const fetchOrders = async () => {
@@ -164,176 +166,115 @@ const AdminOrders = () => {
     setSlipType("");
   };
 
+  const toggleRowExpand = (orderId) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   const getSlipFileName = (url) => {
     if (!url) return "payment-slip";
     return url.split('/').pop() || "payment-slip";
   };
 
-  // Helper function to render customer information
-  const renderCustomerInfo = (customer, address, deliveryMethod) => {
-    if (!customer) return null;
-
-    return (
-      <div className="space-y-1 bg-white/70 p-3 rounded-xl border border-blue-100 shadow-sm">
-        {/* Username */}
-        {customer.username && (
-          <div className="flex items-center gap-2">
-            <User size={14} className="text-blue-500" />
-            <span className="font-medium text-gray-900">{customer.username}</span>
-          </div>
-        )}
-
-        {/* Email */}
-        {customer.email && (
-          <div className="flex items-center gap-2">
-            <Mail size={14} className="text-blue-500" />
-            <span className="text-sm text-gray-600">{customer.email}</span>
-          </div>
-        )}
-
-        {/* Phone */}
-        {customer.phone && (
-          <div className="flex items-center gap-2">
-            <Phone size={14} className="text-blue-500" />
-            <span className="text-sm text-gray-600">{customer.phone}</span>
-          </div>
-        )}
-
-        {/* Delivery Method Badge */}
-        <div className="mt-2">
-          <span
-            className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-              deliveryMethod === "different"
-                ? "bg-amber-50 text-amber-700 border border-amber-200"
-                : deliveryMethod === "store"
-                ? "bg-sky-50 text-sky-700 border border-sky-200"
-                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-            }`}
-          >
-            {deliveryMethod === "different"
-              ? "🟠 Different Address"
-              : deliveryMethod === "store"
-              ? "🟢 Store Pickup"
-              : "🔵 Home Delivery"}
-          </span>
-        </div>
-
-        {/* Address */}
-        {address && deliveryMethod !== "store" && (
-          <div className="flex items-start gap-2 mt-2">
-            <Hash size={14} className="text-blue-500 mt-0.5" />
-            <div className="text-sm text-gray-600 leading-snug">
-              {deliveryMethod === "different" ? (
-                <p>{address.line1}</p>
-              ) : (
-                <>
-                  <p>{address.line1}</p>
-                  <p>{address.city}, {address.postalCode}</p>
-                  <p>{address.country}</p>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-25 to-blue-50 p-4">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
+      <div className="max-w-full mx-auto">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-1">
               Order Management
             </h1>
-            <p className="text-blue-700/80">Manage orders and view payment slips</p>
+            <p className="text-blue-700/70 text-sm">Manage and track customer orders</p>
           </div>
           <button
             onClick={fetchOrders}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-sm"
           >
-            <RefreshCw size={18} />
-            Refresh Orders
+            <RefreshCw size={16} />
+            Refresh
           </button>
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-blue-100 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-blue-100 p-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400" size={18} />
               <input
                 type="text"
-                placeholder="Search by order #, customer name, or email..."
+                placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50"
+                className="w-full pl-10 pr-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 text-sm"
               />
             </div>
             
-            <div className="flex gap-4">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-blue-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 min-w-[160px]"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="transfer_pending">Transfer Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-blue-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 text-sm min-w-[150px]"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="transfer_pending">Transfer Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
           </div>
         </div>
 
         {/* Orders Table */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-blue-100 overflow-hidden">
           {loading ? (
             <div className="flex justify-center items-center py-16">
               <RefreshCw className="animate-spin text-blue-600" size={32} />
             </div>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
-                <Hash className="text-blue-400" size={40} />
+              <div className="w-20 h-20 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
+                <Hash className="text-blue-400" size={32} />
               </div>
-              <p className="text-blue-800/70 text-lg font-medium">No orders found</p>
-              {orders.length === 0 ? (
-                <p className="text-blue-600/60">No orders have been placed yet</p>
-              ) : (
-                <p className="text-blue-600/60">Try adjusting your search or filters</p>
-              )}
+              <p className="text-blue-800/70 font-medium">No orders found</p>
+              <p className="text-blue-600/60 text-sm mt-1">
+                {orders.length === 0 ? "No orders have been placed yet" : "Try adjusting your search or filters"}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-blue-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
-                      Order Details
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider w-8">
+                      {/* Expand column */}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                      Order
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
-                      Payment Method
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                      Payment
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right font-semibold text-blue-900 text-xs uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
-                      Payment Slip
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                      Slip
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-blue-900 text-xs uppercase tracking-wider">
                       Actions
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
-                      Update Status
                     </th>
                   </tr>
                 </thead>
@@ -341,94 +282,212 @@ const AdminOrders = () => {
                   {filteredOrders.map((order) => {
                     const StatusIcon = statusConfig[order.status]?.icon || Clock;
                     const hasPaymentSlip = order.paymentSlip?.url && order.paymentMethod === "bank";
+                    const isExpanded = expandedRows.has(order._id);
                     
                     return (
-                      <tr key={order._id} className="hover:bg-blue-25/50 transition-all duration-200 group">
-                        <td className="px-6 py-4">
-                          <div className="space-y-2">
-                            {order.orderNumber && (
+                      <>
+                        {/* Main Row */}
+                        <tr key={order._id} className="hover:bg-blue-25/30 transition-all duration-150 group">
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleRowExpand(order._id)}
+                              className="p-1 hover:bg-blue-100 rounded transition-colors"
+                            >
+                              {isExpanded ? (
+                                <ChevronUp size={14} className="text-blue-600" />
+                              ) : (
+                                <ChevronDown size={14} className="text-blue-600" />
+                              )}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <Hash size={16} className="text-blue-400" />
-                                <p className="font-semibold text-blue-900">{order.orderNumber}</p>
+                                <Hash size={14} className="text-blue-500" />
+                                <span className="font-semibold text-blue-900">{order.orderNumber}</span>
                               </div>
-                            )}
-                            {order.createdAt && (
-                              <p className="text-sm text-blue-700/80">
-                                {new Date(order.createdAt).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric'
-                                })}
-                              </p>
-                            )}
+                              <div className="text-xs text-blue-600/70">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </div>
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
+                                <StatusIcon size={10} />
+                                {statusConfig[order.status]?.label}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <User size={12} className="text-blue-500" />
+                                <span className="font-medium text-blue-900">{order.customer?.username}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Mail size={12} className="text-blue-500" />
+                                <span className="text-blue-700/80 text-xs">{order.customer?.email}</span>
+                              </div>
+                              {order.customer?.phone && (
+                                <div className="flex items-center gap-2">
+                                  <Phone size={12} className="text-blue-500" />
+                                  <span className="text-blue-700/80 text-xs">{order.customer.phone}</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
-                                <StatusIcon size={12} />
-                                {statusConfig[order.status]?.label || order.status.replace('_', ' ')}
+                              {order.paymentMethod === "online" ? (
+                                <CreditCard size={14} className="text-green-600" />
+                              ) : (
+                                <Banknote size={14} className="text-blue-600" />
+                              )}
+                              <span className={`text-xs font-medium px-2 py-1 rounded ${
+                                order.paymentMethod === "online" 
+                                  ? "bg-green-50 text-green-700 border border-green-200" 
+                                  : "bg-blue-50 text-blue-700 border border-blue-200"
+                              }`}>
+                                {order.paymentMethod === "online" ? "Online" : "Bank"}
                               </span>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {renderCustomerInfo(order.customer, order.address, order.deliveryMethod)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-2 rounded-xl text-xs font-semibold ${
-                            order.paymentMethod === "online" 
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                              : "bg-blue-50 text-blue-700 border border-blue-200"
-                          }`}>
-                            {order.paymentMethod === "online" ? "Online Payment" : "Bank Transfer"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="font-bold text-blue-900 text-lg">{formatPrice(order.total)}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          {hasPaymentSlip ? (
-                            <button
-                              onClick={() => handleViewSlip(order.paymentSlip.url)}
-                              className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1.5 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 text-sm"
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="font-bold text-blue-900">Rs. {formatPrice(order.total)}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {order.paymentMethod === "bank" ? (
+                              hasPaymentSlip ? (
+                                <button
+                                  onClick={() => handleViewSlip(order.paymentSlip.url)}
+                                  className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-2 py-1 rounded text-xs hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-sm"
+                                >
+                                  <Eye size={12} />
+                                  View Slip
+                                </button>
+                              ) : (
+                                <span className="text-red-600 text-xs bg-red-50 px-2 py-1 rounded border border-red-200">
+                                  No Slip
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-blue-800/90 text-xs bg-blue-25 px-2 py-1 rounded border border-blue-100">
+                                Credit/Debit Cart
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <select
+                              value={order.status}
+                              onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                              className={`border border-blue-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white/80 w-28 ${
+                                order.status === "pending" ? "bg-blue-50 text-blue-700" :
+                                order.status === "transfer_pending" ? "bg-amber-50 text-amber-700" :
+                                order.status === "confirmed" ? "bg-green-50 text-green-700" :
+                                order.status === "shipped" ? "bg-purple-50 text-purple-700" :
+                                order.status === "delivered" ? "bg-emerald-50 text-emerald-700" :
+                                "bg-red-50 text-red-700"
+                              }`}
                             >
-                              <Eye size={14} />
-                              View Slip
+                              <option value="pending" className="bg-blue-50 text-blue-700">Pending</option>
+                              <option value="transfer_pending" className="bg-amber-50 text-amber-700">Transfer Pending</option>
+                              <option value="confirmed" className="bg-green-50 text-green-700">Confirmed</option>
+                              <option value="shipped" className="bg-purple-50 text-purple-700">Shipped</option>
+                              <option value="delivered" className="bg-emerald-50 text-emerald-700">Delivered</option>
+                              <option value="cancelled" className="bg-red-50 text-red-700">Cancelled</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => navigate(`/admin/orders/${order._id}`)}
+                              className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-blue-900 text-white px-2 py-1 rounded text-xs hover:from-blue-600 hover:to-blue-800 transition-all duration-200 shadow-sm"
+                            >
+                              <Hash size={12} />
+                              Details
                             </button>
-                          ) : order.paymentMethod === "bank" ? (
-                            <span className="text-rose-600 text-sm bg-rose-50 px-3 py-2 rounded-xl border border-rose-200">
-                              Slip Not Uploaded
-                            </span>
-                          ) : (
-                            <span className="text-blue-400/70 text-sm bg-blue-25 px-3 py-2 rounded-xl border border-blue-100">
-                              Not Applicable
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <button
-                            onClick={() => navigate(`/admin/orders/${order._id}`)}
-                            className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white 
-                                       px-3 py-1.5 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 
-                                       shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 text-sm w-full justify-center"
-                          >
-                            <Hash size={14} />
-                            View Details
-                          </button>
-                        </td>
-                        <td className="px-6 py-4">
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                            className="border border-blue-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 min-w-[140px]"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="transfer_pending">Transfer Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                      </tr>
+                          </td>
+                        </tr>
+
+                        {/* Expanded Row */}
+                        {isExpanded && (
+                          <tr className="bg-blue-25/20 border-b border-blue-100">
+                            <td colSpan={8} className="px-4 py-3">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                {/* Delivery Info */}
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-blue-900 text-xs uppercase tracking-wide">Delivery Info</h4>
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700/80">Method:</span>
+                                      <span className="font-medium text-blue-900 capitalize">{order.deliveryMethod}</span>
+                                    </div>
+                                    {order.address && order.deliveryMethod !== "store" && (
+                                      <>
+                                        <div className="flex justify-between">
+                                          <span className="text-blue-700/80">Address:</span>
+                                          <span className="font-medium text-blue-900 text-right">{order.address.line1}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-blue-700/80">City:</span>
+                                          <span className="font-medium text-blue-900">{order.address.city}</span>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Order Items */}
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-blue-900 text-xs uppercase tracking-wide">Order Items</h4>
+                                  <div className="space-y-1 max-h-20 overflow-y-auto">
+                                    {order.items?.map((item, index) => (
+                                      <div key={index} className="flex justify-between items-center py-1 px-2 bg-white/50 rounded border border-blue-100">
+                                        <div className="flex items-center gap-2">
+                                          {item.image && (
+                                            <img
+                                              src={`http://localhost:5001/${item.image}`}
+                                              alt={item.name}
+                                              className="w-6 h-6 object-cover rounded"
+                                              onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/24x24?text=No+Image';
+                                              }}
+                                            />
+                                          )}
+                                          <span className="font-medium text-blue-900 text-xs">{item.name}</span>
+                                        </div>
+                                        <div className="text-right">
+                                          <span className="text-blue-700 text-xs">Qty: {item.quantity}</span>
+                                          <div className="text-blue-900 font-medium text-xs">Rs. {formatPrice(item.price * item.quantity)}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Additional Info */}
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-blue-900 text-xs uppercase tracking-wide">Additional Info</h4>
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700/80">Subtotal:</span>
+                                      <span className="font-medium text-blue-900">Rs. {formatPrice(order.subtotal)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700/80">Delivery:</span>
+                                      <span className="font-medium text-blue-900">
+                                        {order.deliveryCharge === 0 ? "FREE" : `Rs. ${formatPrice(order.deliveryCharge)}`}
+                                      </span>
+                                    </div>
+                                    {order.notes && (
+                                      <div>
+                                        <span className="text-blue-700/80">Notes:</span>
+                                        <p className="text-blue-900 text-xs mt-1">{order.notes}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     );
                   })}
                 </tbody>
@@ -441,81 +500,73 @@ const AdminOrders = () => {
       {/* Payment Slip Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-blue-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl max-h-[90vh] w-full border border-blue-200">
-            <div className="flex items-center justify-between p-6 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-2xl">
-              <div className="flex items-center gap-3">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-blue-200">
+            <div className="flex items-center justify-between p-4 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-xl">
+              <div className="flex items-center gap-2">
                 {slipType === "pdf" ? 
-                  <FileText className="text-blue-500" size={24} /> : 
-                  <ImageIcon className="text-cyan-500" size={24} />
+                  <FileText className="text-blue-600" size={20} /> : 
+                  <ImageIcon className="text-cyan-600" size={20} />
                 }
                 <h3 className="text-lg font-semibold text-blue-900">
-                  Bank Payment Slip - {getSlipFileName(selectedSlip)}
+                  Payment Slip - {getSlipFileName(selectedSlip)}
                 </h3>
               </div>
               <button
                 onClick={closeModal}
                 className="text-blue-400 hover:text-blue-600 transition-colors p-1 hover:bg-blue-100 rounded-lg"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
             
-            <div className="p-6 max-h-[70vh] overflow-auto flex items-center justify-center bg-blue-25/30">
+            <div className="p-6 max-h-[60vh] overflow-auto flex items-center justify-center bg-blue-25/30">
               {selectedSlip ? (
                 slipType === "pdf" ? (
-                  <div className="text-center p-8">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                      <FileText className="text-blue-500" size={40} />
+                  <div className="text-center p-6">
+                    <div className="w-16 h-16 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
+                      <FileText className="text-blue-600" size={32} />
                     </div>
-                    <p className="text-blue-800 mb-4">This is a PDF payment slip</p>
+                    <p className="text-blue-800 mb-4">PDF payment slip</p>
                     <a
                       href={selectedSlip}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg shadow-blue-500/25"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200"
                     >
                       <Download size={16} />
-                      Open PDF Slip
+                      Open PDF
                     </a>
                   </div>
                 ) : (
-                  <div className="relative">
-                    <img
-                      src={selectedSlip}
-                      alt="Bank Payment Slip"
-                      className="max-w-full max-h-[60vh] rounded-lg shadow-lg border-4 border-white"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwTDE1MCAyMDBIMjUwTDIwMCAxNTBaIiBmaWxsPSIjOEU5MEEwIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOEU5MEEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiPkJhbmsgU2xpcCBub3QgYXZhaWxhYmxlPC90ZXh0Pgo8L3N2Zz4K=";
-                      }}
-                    />
-                  </div>
+                  <img
+                    src={selectedSlip}
+                    alt="Payment Slip"
+                    className="max-w-full max-h-[50vh] rounded-lg shadow-md border-4 border-white"
+                  />
                 )
               ) : (
-                <div className="text-center text-blue-400 p-8">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                    <ImageIcon className="text-blue-400" size={40} />
-                  </div>
-                  <p className="text-blue-600">No payment slip available</p>
+                <div className="text-center text-blue-400">
+                  <ImageIcon className="mx-auto mb-2 text-blue-400" size={40} />
+                  <p>No payment slip available</p>
                 </div>
               )}
             </div>
             
-            <div className="flex justify-end gap-3 p-6 border-t border-blue-100 bg-blue-50/50 rounded-b-2xl">
+            <div className="flex justify-end gap-3 p-4 border-t border-blue-100 bg-blue-50/50">
               {selectedSlip && (
                 <a
                   href={selectedSlip}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg shadow-blue-500/25"
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200"
                 >
                   <Download size={16} />
-                  Download {slipType === "pdf" ? "PDF" : "Image"}
+                  Download
                 </a>
               )}
               <button
                 onClick={closeModal}
-                className="px-6 py-2 border border-blue-200 text-blue-700 rounded-xl hover:bg-blue-50 transition-all duration-200"
+                className="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-all duration-200"
               >
                 Close
               </button>

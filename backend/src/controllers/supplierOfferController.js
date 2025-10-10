@@ -153,4 +153,3 @@ export const rejectOffer = async (req, res) => {
     res.status(500).json({ message: "Error rejecting offer", error: err.message });
   }
 };
-
