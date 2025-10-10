@@ -1,4 +1,6 @@
 import Order from "../models/Order.js";
+import Stock from "../models/Stock.js";
+
 
 
 //Get All Orders (User) 
@@ -62,14 +64,15 @@ export const uploadBankSlip = async (req, res) => {
   }
 };
 
-//Update Order Status (Admin)
+// Update Order Status (Admin)
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("items.product");
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 
+    // Update order status and history
     order.status = status;
     order.history.push({
       status,
@@ -78,9 +81,42 @@ export const updateOrderStatus = async (req, res) => {
       updatedBy: "admin",
     });
 
+    // 🔹 When order is confirmed, automatically update stock quantities
+    if (status === "confirmed") {
+      for (const item of order.items) {
+        // find product’s related stock
+        const product = item.product;
+
+        if (product && product.stock) {
+          const stock = await Stock.findById(product.stock);
+          if (stock) {
+            // reduce quantity
+            stock.quantity -= item.quantity;
+            if (stock.quantity < 0) stock.quantity = 0; // avoid negatives
+            await stock.save();
+          }
+        }
+      }
+    }
+
+    // 🔹 (Optional) if order is cancelled, restore stock
+    if (status === "cancelled") {
+      for (const item of order.items) {
+        const product = item.product;
+        if (product && product.stock) {
+          const stock = await Stock.findById(product.stock);
+          if (stock) {
+            stock.quantity += item.quantity;
+            await stock.save();
+          }
+        }
+      }
+    }
+
     await order.save();
-    res.json(order);
+    res.json({ message: "Order status updated successfully", order });
   } catch (err) {
+    console.error("Error updating order status:", err);
     res.status(500).json({ message: err.message });
   }
 };
