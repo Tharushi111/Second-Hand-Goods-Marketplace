@@ -254,7 +254,7 @@ const AdminHome = () => {
         quickStats,
         performance: {
           topSelling,
-          busiestHours: ['2:00 PM - 4:00 PM'], // Could be calculated from order timestamps
+          busiestHours: ['2:00 PM - 4:00 PM'], 
           customerSatisfaction
         }
       });
