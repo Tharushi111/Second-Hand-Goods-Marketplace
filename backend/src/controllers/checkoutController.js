@@ -48,88 +48,97 @@ export const getCheckoutSummary = async (req, res) => {
 
 /** Order placement
   POST /api/checkout/place*/
-export const placeOrder = async (req, res) => {
-  try {
-    const cart = await Cart.findOne({ user: req.user.id }).populate("items.product");
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
+  export const placeOrder = async (req, res) => {
+    try {
+      const cart = await Cart.findOne({ user: req.user.id }).populate("items.product");
+      if (!cart || cart.items.length === 0) {
+        return res.status(400).json({ message: "Cart is empty" });
+      }
+  
+      const { deliveryMethod, notes, paymentMethod } = req.body;
+  
+      if (!paymentMethod) {
+        return res.status(400).json({ message: "Payment method is required" });
+      }
+  
+      // get user profile from DB
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      // match Order.js
+      const customer = {
+        username: user.username,
+        email: user.email,
+        phone: user.phone || "",
+      };
+  
+      const address = {
+        line1:
+          deliveryMethod === "home"
+            ? user.address
+            : deliveryMethod === "different"
+            ? req.body.address?.line1 || "Not provided"
+            : "Store Pickup",
+        city: user.city || "Unknown",
+        postalCode: user.postalCode || "00000",
+        country: user.country || "Sri Lanka",
+      };
+  
+      const items = cart.items.map((i) => ({
+        product: i.product._id,
+        name: i.product?.name || i.name,
+        price: i.price,
+        quantity: i.quantity,
+        image: i.image,
+      }));
+  
+      const subtotal = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
+      const deliveryCharge = deliveryMethod === "store" ? 0 : 1300;
+      const total = subtotal + deliveryCharge;
+  
+      // Set initial status based on payment method
+      let initialStatus = "pending";
+      if (paymentMethod === "online") {
+        initialStatus = "pending"; // Will be updated when payment is successful
+      } else if (paymentMethod === "bank") {
+        initialStatus = "transfer_pending";
+      }
+  
+      const order = await Order.create({
+        user: user._id,
+        items,
+        subtotal,
+        deliveryCharge,
+        total,
+        customer,   
+        address,
+        deliveryMethod: deliveryMethod || "home",
+        notes: notes || "",
+        paymentMethod,
+        status: initialStatus, // Use the dynamic status
+        paymentSlip: null,
+      });
+  
+      //clear only this user's cart
+      cart.items = [];
+      await cart.save();
+  
+      res.status(201).json({
+        message: "Order placed successfully",
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        subtotal,
+        deliveryCharge,
+        total,
+      });
+    } catch (err) {
+      console.error("Place order error:", err);
+      res.status(500).json({ message: "Failed to place order", error: err.message });
     }
-
-    const { deliveryMethod, notes, paymentMethod } = req.body;
-
-    if (!paymentMethod) {
-      return res.status(400).json({ message: "Payment method is required" });
-    }
-
-    // get user profile from DB
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // match Order.js
-    const customer = {
-      username: user.username,
-      email: user.email,
-      phone: user.phone || "",
-    };
-
-    const address = {
-      line1:
-        deliveryMethod === "home"
-          ? user.address
-          : deliveryMethod === "different"
-          ? req.body.address?.line1 || "Not provided"
-          : "Store Pickup",
-      city: user.city || "Unknown",
-      postalCode: user.postalCode || "00000",
-      country: user.country || "Sri Lanka",
-    };
-
-    const items = cart.items.map((i) => ({
-      product: i.product._id,
-      name: i.product?.name || i.name,
-      price: i.price,
-      quantity: i.quantity,
-      image: i.image,
-    }));
-
-    const subtotal = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
-    const deliveryCharge = deliveryMethod === "store" ? 0 : 1300;
-    const total = subtotal + deliveryCharge;
-    const order = await Order.create({
-      user: user._id,
-      items,
-      subtotal,
-      deliveryCharge,
-      total,
-      customer,   
-      address,
-      deliveryMethod: deliveryMethod || "home",
-      notes: notes || "",
-      paymentMethod,
-      status: "pending",
-      paymentSlip: null,
-    });
-
-    //clear only this user’s cart
-    cart.items = [];
-    await cart.save();
-
-    res.status(201).json({
-      message: "Order placed successfully",
-      orderId: order._id,
-      orderNumber: order.orderNumber,
-      status: order.status,
-      subtotal,
-      deliveryCharge,
-      total,
-    });
-  } catch (err) {
-    console.error("Place order error:", err);
-    res.status(500).json({ message: "Failed to place order", error: err.message });
-  }
-};
+  };
 
 /* Slip upload
  POST /api/checkout/upload-slip/:orderId */

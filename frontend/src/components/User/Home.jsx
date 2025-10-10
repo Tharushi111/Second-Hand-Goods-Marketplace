@@ -57,19 +57,19 @@ const HomePage = () => {
 
   const testimonials = [
     {
-      name: "Sarah Johnson",
+      name: "Rakindu Rajapaksha",
       role: "Frequent Buyer",
-      text: "I've saved over $2,000 buying refurbished electronics from ReBuy. The quality is always excellent!",
+      text: "I've saved over Rs. 2,000 buying refurbished electronics from ReBuy. The quality is always excellent!",
       rating: 5
     },
     {
-      name: "Michael Chen",
+      name: "Pathum Fernando",
       role: "Electronics Seller",
       text: "As a seller, ReBuy has provided me with a reliable platform to reach customers who value quality used goods.",
       rating: 4
     },
     {
-      name: "Emma Rodriguez",
+      name: "Nimali Perera",
       role: "First-time Buyer",
       text: "I was hesitant at first, but the verification process and warranty made me feel confident in my purchase.",
       rating: 5

@@ -19,6 +19,9 @@ import AdminFeedbackPage from "./components/adminFeedback/adminFeedback.jsx";
 import SupplierPage from "./components/supplier/supplier.jsx";
 import AdminOrders from "./components/order/AdminOrders.jsx";
 import OrderDetails from "./components/order/OrderDetails.jsx";
+import AdminHome from "./components/AdminHome.jsx";
+import Delivery from "./components/delivery.jsx";
+
 
 // User components
 import ProductListing from "./components/User/productListing.jsx";
@@ -36,6 +39,7 @@ import Cart from "./components/order/cart.jsx";
 import Checkout from "./components/order/Checkout.jsx";
 import OrderConfirmation from "./components/order/OrderConfirmation.jsx";
 import OrderHistory from "./components/order/OrderHistory.jsx";
+import OnlinePayment from "./components/order/OnlinePayment.jsx";
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -76,6 +80,7 @@ function App() {
     "/checkout",
     "/order-confirmation",
     "/order-history",
+    "/OnlinePayment",
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
@@ -107,6 +112,7 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
             <Route path="/order-history" element={<OrderHistory />} />
+            <Route path="/OnlinePayment" element={<OnlinePayment/>} />
 
             {/* Buyer & Supplier Dashboards */}
             <Route
@@ -131,7 +137,7 @@ function App() {
               path="/"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Admin Home Page</h2>
+                  <AdminHome />
                 </AdminPrivateRoute>
               }
             />
@@ -205,7 +211,7 @@ function App() {
               path="/delivery"
               element={
                 <AdminPrivateRoute>
-                  <h2 className="text-2xl font-bold">Delivery Page</h2>
+                  <Delivery />
                 </AdminPrivateRoute>
               }
             />
@@ -241,25 +247,56 @@ function App() {
         pauseOnHover
       />
 
-      {/* Hot Toast container for specific notifications (like products) */}
+      {/* Hot Toast container for specific notifications */}
       <Toaster
         position="top-center"
         toastOptions={{
           success: {
             style: {
-              background: "#4ade80",
-              color: "white",
+              background: "linear-gradient(135deg, #1e40af, #0369a1)",
+              color: "#ffffff",
+              border: "1px solid #1e3a8a",
+              boxShadow: "0 4px 12px rgba(30, 64, 175, 0.4)",
+              textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#ffffff",
+              secondary: "#1e40af",
             },
           },
           error: {
             style: {
-              background: "#ef4444",
-              color: "white",
+              background: "linear-gradient(135deg, #dc2626, #b91c1c)",
+              color: "#ffffff",
+              border: "1px solid #dc2626",
+              boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+              textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#ffffff",
+              secondary: "#dc2626",
+            },
+          },
+          loading: {
+            style: {
+              background: "linear-gradient(135deg, #4f46e5, #3730a3)",
+              color: "#ffffff",
+              border: "1px solid #4f46e5",
+              boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
+              textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#ffffff",
+              secondary: "#4f46e5",
             },
           },
           style: {
             fontSize: "15px",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: "600", // Increased font weight for better readability
+            borderRadius: "12px",
+            padding: "14px 22px",
+            backdropFilter: "blur(8px)",
           },
         }}
       />

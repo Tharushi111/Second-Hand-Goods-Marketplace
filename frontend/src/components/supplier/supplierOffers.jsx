@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import companyLogo from '../../assets/ReBuyLogo.png';
 
 const SupplierOffers = () => {
   const [offers, setOffers] = useState([]);
@@ -91,22 +92,47 @@ const SupplierOffers = () => {
     const doc = new jsPDF();
     const margin = 15;
     const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Header
-    doc.setFontSize(20).setTextColor(40, 103, 178);
-    doc.text("Supplier Offers Report", pageWidth / 2, 30, { align: "center" });
-
-    doc.setFontSize(10).setTextColor(100, 100, 100);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, 40, {
-      align: "center",
+    const pageHeight = doc.internal.pageSize.getHeight();
+  
+    // --- HEADER SECTION ---
+    const logoX = 15;
+    const logoY = 10;
+    const logoWidth = 20;
+    const logoHeight = 20;
+  
+    // Add company logo (Top-left)
+    doc.addImage(companyLogo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+  
+    // Company details (Top-right corner)
+    doc.setFontSize(10);
+    doc.setTextColor(75, 85, 99);
+    doc.setFont(undefined, 'normal');
+    const rightMargin = pageWidth - 15; // right edge
+    const lineHeight = 5;
+  
+    const companyLines = [
+      "ReBuy.lk",
+      "77A, Market Street, Colombo, Sri Lanka",
+      "Contact: +94 77 321 4567",
+      "Email: rebuy@gmail.com",
+    ];
+  
+    companyLines.forEach((line, i) => {
+      doc.text(line, rightMargin, 12 + i * lineHeight, { align: "right" });
     });
-    doc.text(`Total Offers: ${filteredOffers.length}`, pageWidth / 2, 50, {
-      align: "center",
-    });
-
-    // Offers Table
+  
+    // Title (centered)
+    doc.setFontSize(20).setTextColor(40, 103, 178).setFont(undefined, 'bold');
+    doc.text("Supplier Offers Report", pageWidth / 2, 45, { align: "center" });
+  
+    // Generated info
+    doc.setFontSize(10).setTextColor(100, 100, 100).setFont(undefined, 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, 52, { align: "center" });
+    doc.text(`Total Offers: ${filteredOffers.length}`, pageWidth / 2, 58, { align: "center" });
+  
+    // --- TABLE SECTION ---
     autoTable(doc, {
-      startY: 60,
+      startY: 65,
       head: [["Title", "Supplier", "Price (Rs)", "Quantity", "Status"]],
       body: filteredOffers.map((offer) => [
         offer.title,
@@ -116,15 +142,28 @@ const SupplierOffers = () => {
         offer.status,
       ]),
       theme: "grid",
-      headStyles: { fillColor: [40, 103, 178] },
+      headStyles: { fillColor: [40, 103, 178], textColor: [255, 255, 255] },
       margin: { left: margin, right: margin },
+      didDrawPage: function (data) {
+        // Footer with page numbers
+        const pageCount = doc.internal.getNumberOfPages();
+        const pageCurrent = doc.internal.getCurrentPageInfo().pageNumber;
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+          `Page ${pageCurrent} of ${pageCount}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: "center" }
+        );
+      },
     });
-
-    doc.save(
-      `supplier_offers_${new Date().toISOString().split("T")[0]}.pdf`
-    );
+  
+    // Save PDF
+    doc.save(`supplier_offers_${new Date().toISOString().split("T")[0]}.pdf`);
   };
-
+  
+  
   useEffect(() => {
     fetchOffers();
   }, []);

@@ -137,7 +137,6 @@ const OrderHistory = () => {
     doc.rect(0, 0, 210, 40, 'F');
     
     // Add company logo image
-    // Parameters: image, format, x, y, width, height
     doc.addImage(companyLogo, 'PNG', 15, 10, 20, 20);
     
     // Company details - Right side
@@ -229,9 +228,9 @@ const OrderHistory = () => {
     // Delivery Charge
     doc.text("Delivery Charge:", 150, finalY + 5, { align: 'right' });
     if (order.deliveryCharge === 0) {
-      doc.setTextColor(34, 197, 94); // Green color for FREE
+      doc.setTextColor(34, 197, 94); 
       doc.text("FREE", 190, finalY + 5, { align: 'right' });
-      doc.setTextColor(75, 85, 99); // Reset to dark gray
+      doc.setTextColor(75, 85, 99); 
     } else {
       doc.text(`Rs. ${formatPrice(order.deliveryCharge)}`, 190, finalY + 5, { align: 'right' });
     }
@@ -416,7 +415,7 @@ const OrderHistory = () => {
                       <button
                         onClick={() => generatePDF(order)}
                         disabled={downloadingPdf}
-                        className="bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         <FaDownload />
                         Download PDF
@@ -638,14 +637,14 @@ const OrderHistory = () => {
                 <button
                   onClick={() => generatePDF(selectedOrder)}
                   disabled={downloadingPdf}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <FaDownload />
                   {downloadingPdf ? 'Generating PDF...' : 'Download Invoice PDF'}
                 </button>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 transition-all duration-300"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300"
                 >
                   Close
                 </button>
