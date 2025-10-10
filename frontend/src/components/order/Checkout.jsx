@@ -5,6 +5,130 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../User/UserNavbar";
 import Footer from "../User/UserFooter";
 import { toast } from "react-hot-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK);
+
+const StripePaymentForm = ({ orderId, total, token, onPaymentSuccess }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+
+  const handlePayment = async () => {
+    if (!stripe || !elements) return;
+
+    setLoading(true);
+    try {
+      // Create PaymentIntent on backend
+      const res = await axios.post(
+        "http://localhost:5001/api/stripe/create-payment-intent",
+        { amount: total, orderId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const clientSecret = res.data.clientSecret;
+      
+      const cardNumber = elements.getElement(CardNumberElement);
+      const cardExpiry = elements.getElement(CardExpiryElement);
+      const cardCvc = elements.getElement(CardCvcElement);
+
+      const paymentResult = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardNumber,
+          billing_details: {
+            // You can add billing details here if needed
+          },
+        },
+      });
+
+      if (paymentResult.error) {
+        toast.error(paymentResult.error.message);
+      } else if (paymentResult.paymentIntent.status === "succeeded") {
+        toast.success("Payment successful! 🎉");
+        onPaymentSuccess();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Payment failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#1e293b',
+        fontFamily: '"Inter", sans-serif',
+        '::placeholder': {
+          color: '#94a3b8',
+        },
+        padding: '10px',
+      },
+      invalid: {
+        color: '#ef4444',
+      },
+    },
+    disableLink: true, // This removes the autofill link
+  };
+
+  return (
+    <div className="mt-4 p-6 bg-white rounded-3xl shadow-lg">
+      <h3 className="text-xl font-bold text-blue-900 mb-6">Online Payment: Rs. {total.toLocaleString()}</h3>
+      
+      {/* Card Number Field */}
+      <div className="mb-4">
+        <label className="block text-blue-700 font-medium mb-2 text-sm">Card Number</label>
+        <div className="p-3 border-2 border-blue-200 rounded-2xl focus-within:border-blue-500 transition-all duration-300">
+          <CardNumberElement options={cardElementOptions} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Expiry Date Field */}
+        <div>
+          <label className="block text-blue-700 font-medium mb-2 text-sm">Expiry Date</label>
+          <div className="p-3 border-2 border-blue-200 rounded-2xl focus-within:border-blue-500 transition-all duration-300">
+            <CardExpiryElement options={cardElementOptions} />
+          </div>
+        </div>
+
+        {/* CVC Field */}
+        <div>
+          <label className="block text-blue-700 font-medium mb-2 text-sm">CVC</label>
+          <div className="p-3 border-2 border-blue-200 rounded-2xl focus-within:border-blue-500 transition-all duration-300">
+            <CardCvcElement options={cardElementOptions} />
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={handlePayment}
+        disabled={loading || !stripe}
+        className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-2xl font-bold transition-all shadow-lg flex justify-center gap-2"
+      >
+        {loading ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            Processing...
+          </>
+        ) : (
+          "Pay Now"
+        )}
+      </button>
+
+      {/* Security Note */}
+      <div className="mt-4 text-center">
+        <div className="inline-flex items-center gap-2 text-green-600 text-xs">
+          <FaLock className="text-green-500" />
+          Your payment details are secure and encrypted
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Checkout = () => {
   const [cart, setCart] = useState([]);
@@ -16,6 +140,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [notes, setNotes] = useState("");
+  const [orderId, setOrderId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -104,6 +229,17 @@ const Checkout = () => {
     setSlipPreview(file.type.match('image.*') ? URL.createObjectURL(file) : null);
   };
 
+  const handlePaymentSuccess = () => {
+    localStorage.removeItem("cart");
+    navigate("/order-confirmation", {
+      state: {
+        orderId,
+        status: "paid",
+        total
+      }
+    });
+  };
+
   const handlePlaceOrder = async () => {
     if (!token) {
       toast.error("Please login first.");
@@ -172,6 +308,9 @@ const Checkout = () => {
         },
       });
 
+      // Store orderId for Stripe payment
+      setOrderId(res.data.orderId);
+
       // If payment method is bank and slip file exists, upload slip separately
       if (paymentMethod === "bank" && slipFile) {
         try {
@@ -191,18 +330,24 @@ const Checkout = () => {
         }
       }
 
-      toast.success("🎉 Order placed successfully! Order ID: " + res.data.orderId);
-      
-      // Clear cart and navigate to confirmation
-      localStorage.removeItem("cart"); 
-      navigate("/order-confirmation", { 
-        state: { 
-          orderId: res.data.orderId,
-          orderNumber: res.data.orderNumber,
-          status: res.data.status,
-          total: res.data.total
-        } 
-      });
+      // Online payment handling
+      if (paymentMethod === "online") {
+        toast.success("Proceed to payment below 👇");
+        return; // Show Stripe payment form
+      } else {
+        toast.success("🎉 Order placed successfully! Order ID: " + res.data.orderId);
+        
+        // Clear cart and navigate to confirmation
+        localStorage.removeItem("cart"); 
+        navigate("/order-confirmation", { 
+          state: { 
+            orderId: res.data.orderId,
+            orderNumber: res.data.orderNumber,
+            status: res.data.status,
+            total: res.data.total
+          } 
+        });
+      }
     } catch (err) {
       console.error("Failed to place order:", err);
       console.error("Error details:", err.response?.data);
@@ -422,6 +567,18 @@ const Checkout = () => {
                     )}
                   </div>
                 )}
+
+                {/* Stripe Payment Form */}
+                {paymentMethod === "online" && orderId && (
+                  <Elements stripe={stripePromise}>
+                    <StripePaymentForm
+                      orderId={orderId}
+                      total={total}
+                      token={token}
+                      onPaymentSuccess={handlePaymentSuccess}
+                    />
+                  </Elements>
+                )}
               </div>
             </div>
 
@@ -485,23 +642,25 @@ const Checkout = () => {
                 </div>
 
                 {/* Place Order Button */}
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={loading}
-                  className="w-full mt-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all transform hover:scale-105 disabled:scale-100 shadow-lg hover:shadow-xl duration-300 flex items-center justify-center gap-3"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <FaLock />
-                      Place Order Securely
-                    </>
-                  )}
-                </button>
+                {!(paymentMethod === "online" && orderId) && (
+                  <button
+                    onClick={handlePlaceOrder}
+                    disabled={loading}
+                    className="w-full mt-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all transform hover:scale-105 disabled:scale-100 shadow-lg hover:shadow-xl duration-300 flex items-center justify-center gap-3"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <FaLock />
+                        Place Order Securely
+                      </>
+                    )}
+                  </button>
+                )}
 
                 {/* Security Badge */}
                 <div className="mt-4 text-center">

@@ -1,10 +1,7 @@
 import Order from "../models/Order.js";
 import Stock from "../models/Stock.js";
 
-
-
-//Get All Orders (User) 
-
+// Get All Orders (User) 
 export const getAllOrdersForUser = async (req, res) => {
   try {
     // Filter by logged-in user
@@ -17,7 +14,6 @@ export const getAllOrdersForUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 // Get Order By ID 
 export const getOrderById = async (req, res) => {
@@ -32,7 +28,7 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-//Upload Bank Slip 
+// Upload Bank Slip 
 export const uploadBankSlip = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -84,7 +80,7 @@ export const updateOrderStatus = async (req, res) => {
     // 🔹 When order is confirmed, automatically update stock quantities
     if (status === "confirmed") {
       for (const item of order.items) {
-        // find product’s related stock
+        // find product's related stock
         const product = item.product;
 
         if (product && product.stock) {
@@ -121,19 +117,46 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-
-
-//Get Only Slip Orders (Admin)
+// Get ALL Orders for Admin (FIXED - returns both online and bank payments)
 export const getSlipOrdersForAdmin = async (req, res) => {
   try {
-    const orders = await Order.find({
-      paymentSlip: { $exists: true, $ne: null },  
-    })
+    const orders = await Order.find({})  // Remove the paymentSlip filter
       .sort({ createdAt: -1 })
       .populate("user", "username email phone address city country"); 
 
     res.json(orders);
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Update order status after successful Stripe payment
+export const updateOrderPaymentStatus = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Update order status to confirmed for successful online payments
+    order.status = "confirmed";
+    order.history.push({
+      status: "confirmed",
+      updatedAt: new Date(),
+      note: "Payment completed via Stripe",
+      updatedBy: "system",
+    });
+
+    await order.save();
+
+    res.json({ 
+      message: "Order payment status updated successfully", 
+      order 
+    });
+  } catch (err) {
+    console.error("Error updating payment status:", err);
     res.status(500).json({ message: err.message });
   }
 };

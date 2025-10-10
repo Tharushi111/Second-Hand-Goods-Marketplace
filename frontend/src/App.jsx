@@ -38,6 +38,7 @@ import Cart from "./components/order/cart.jsx";
 import Checkout from "./components/order/Checkout.jsx";
 import OrderConfirmation from "./components/order/OrderConfirmation.jsx";
 import OrderHistory from "./components/order/OrderHistory.jsx";
+import OnlinePayment from "./components/order/OnlinePayment.jsx";
 
 // PrivateRoute for admin
 const AdminPrivateRoute = ({ children }) => {
@@ -78,6 +79,7 @@ function App() {
     "/checkout",
     "/order-confirmation",
     "/order-history",
+    "/OnlinePayment",
   ];
   const isNoAdminLayout = noAdminLayoutRoutes.includes(location.pathname);
 
@@ -109,6 +111,7 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
             <Route path="/order-history" element={<OrderHistory />} />
+            <Route path="/OnlinePayment" element={<OnlinePayment/>} />
 
             {/* Buyer & Supplier Dashboards */}
             <Route

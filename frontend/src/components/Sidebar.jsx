@@ -13,11 +13,12 @@ import {
   faDolly,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom"; 
 import logo from "../assets/ReBuy.png";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate(); 
 
   const menuItems = [
     { name: "Home", icon: faHome, path: "/" },
@@ -35,7 +36,13 @@ const Sidebar = () => {
     <>
       {/* Mobile Navbar Toggle */}
       <div className="md:hidden flex justify-between items-center p-4 bg-[#001840] text-white">
-        <img src={logo} alt="ReBuy.lk Logo" className="h-12 w-auto" />
+        
+        <img
+          src={logo}
+          alt="ReBuy.lk Logo"
+          className="h-12 w-auto cursor-pointer"
+          onClick={() => navigate("/HomePage")}
+        />
         <button onClick={() => setIsOpen(!isOpen)}>
           <FontAwesomeIcon icon={isOpen ? faTimes : faBars} size="lg" />
         </button>
@@ -47,8 +54,11 @@ const Sidebar = () => {
           isOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
-        {/* Logo Section for Desktop */}
-        <div className="hidden md:flex justify-center items-center p-6 border-b border-blue-300">
+      
+        <div
+          className="hidden md:flex justify-center items-center p-6 border-b border-blue-300 cursor-pointer"
+          onClick={() => navigate("/HomePage")} 
+        >
           <img src={logo} alt="ReBuy.lk Logo" className="h-20 w-auto" />
         </div>
 
