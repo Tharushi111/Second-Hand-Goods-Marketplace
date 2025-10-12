@@ -537,6 +537,26 @@ const Checkout = () => {
 
                 {paymentMethod === "bank" && (
                   <div className="mt-4">
+
+                    {/* Bank Account Details */}
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-sm">
+                      <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                        <FaCreditCard className="text-blue-500" />
+                        Bank Account Details
+                      </h3>
+                      <ul className="text-blue-800 space-y-1 text-sm">
+                        <li><strong>Bank Name:</strong> People's Bank</li>
+                        <li><strong>Branch:</strong> Colombo Main Branch</li>
+                        <li><strong>Account Name:</strong> ReBuy Online Marketplace</li>
+                        <li><strong>Account Number:</strong> 204200100091326</li>
+                        <li><strong>SWIFT Code:</strong> PSBKLKLX</li>
+                      </ul>
+                      <p className="text-blue-600 text-xs mt-3 italic">
+                        Please upload a clear image or PDF of your payment slip below after transferring the total amount.
+                      </p>
+                    </div>
+
+                    {/* Upload Slip Section */}
                     <label className="block text-blue-700 font-medium mb-2">Upload Payment Slip</label>
                     <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 text-center hover:border-blue-400 transition-colors duration-300">
                       <input
@@ -559,7 +579,7 @@ const Checkout = () => {
                         <img src={slipPreview} alt="Slip Preview" className="w-48 rounded-xl border-2 border-blue-200 shadow-md" />
                       </div>
                     )}
-                    
+
                     {slipFile && !slipPreview && (
                       <div className="mt-4 p-3 bg-blue-50 rounded-2xl border border-blue-200">
                         <p className="text-blue-700 font-medium">PDF file uploaded: {slipFile.name}</p>
@@ -567,6 +587,7 @@ const Checkout = () => {
                     )}
                   </div>
                 )}
+
 
                 {/* Stripe Payment Form */}
                 {paymentMethod === "online" && orderId && (
