@@ -58,7 +58,7 @@ This section highlights the parts of the project I developed and managed.
 
 ### 📸 **Screenshots**
 <p align="center">
-  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/main/frontend/src/assets/dashboard.png?raw=true" alt="Stock Dashboard" width="400"/>
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/dashboard.png?raw=true" alt="Stock Dashboard" width="400"/>
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/stock_products.png?raw=true" alt="Inventory Table" width="400"/>
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/add_stock.png?raw=true" alt="Add Stock Product Form" width="400"/>
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/reorders.png?raw=true" alt="Reorder Request Table" width="400"/>
