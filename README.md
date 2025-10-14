@@ -57,7 +57,7 @@ This section highlights the parts of the project I developed and managed.
 - Created inventory dashboard and stock update pages.
 
 ### 📸 **Screenshots**
-<p align="center">
+<p align="left">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/dashboard.png?raw=true" alt="Stock Dashboard" width="400"/>
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/stock_products.png?raw=true" alt="Inventory Table" width="400"/>
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/add_stock.png?raw=true" alt="Add Stock Product Form" width="400"/>
@@ -85,5 +85,7 @@ This section highlights the parts of the project I developed and managed.
 <p align="center">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/feedback.png?raw=true" alt="Feedback Page" width="400"/>
 </p>
+
+
 ---
 
