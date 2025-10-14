@@ -72,8 +72,17 @@ This section highlights the parts of the project I developed and managed.
 ### 📸 **Screenshots**
 <p align="center">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/home.png?raw=true" alt="Home Page" width="400"/>
+</p>
+
+<p align="center">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/contactUs.png?raw=true" alt="ContactUs Page" width="400"/>
+</p>
+
+<p align="center">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/aboutUs.png?raw=true" alt="AboutUs Page" width="400"/>
+</p>
+
+<p align="center">
   <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/feedback.png?raw=true" alt="Feedback Page" width="400"/>
 </p>
 ---
