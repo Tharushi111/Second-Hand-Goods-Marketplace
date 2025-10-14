@@ -41,4 +41,30 @@ ReBuy.lk is a **MERN stack web application** for buying and selling **second-han
 - **User Features:** Registration, login, browse products, place orders, profile management 👤  
 - **Admin Features:** User, supplier, product management and inventory management, approve supplier offers 🛠  
 - **Supplier Features:** Respond to stock requests, provide supplier offers 💌  
-- **System Features:** Inventory monitoring, reorder notifications, secure authentication 🔒  
+- **System Features:** Inventory monitoring, reorder notifications, secure authentication 🔒
+
+
+---
+
+## 👩‍💻 Contribution – Tharushi Paranagama
+
+This section highlights the parts of the project I developed and managed.
+
+### 🧾 **Module: Stock & Inventory Management**
+- Developed full CRUD operations for stock and inventory.
+- Implemented stock level tracking and automatic low-stock alerts.
+- Integrated with supplier management for reorder requests.
+- Created inventory dashboard and stock update pages.
+
+### 📸 **Screenshots**
+<p align="center">
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/screenshots/dashboard.png?raw=true" alt="Stock Dashboard" width="400"/>
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/screenshots/stock_products.png?raw=true" alt="Inventory Table" width="400"/>
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/screenshots/add_stock.png?raw=true" alt="Add Stock Product Form" width="400"/>
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/screenshots/reorders.png?raw=true" alt="Reorder Request Table" width="400"/>
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/screenshots/create-reorder.png?raw=true" alt="Create Reorder Form" width="400"/>
+  <img src="https://github.com/Tharushi111/Second-Hand-Goods-Marketplace/blob/main/frontend/src/assets/screenshots/report.png?raw=true" alt="Stock Report" width="400"/>
+</p>
+
+---
+
